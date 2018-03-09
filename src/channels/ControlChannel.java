@@ -20,25 +20,22 @@ public class ControlChannel extends Channel {
 			System.out.println("\n\tCONTROL CHANNEL - ServerID " + peer.getPeerId() + ": Message received\n");
 			System.out.println(msg.getHeader());
 			
-			if (msg.getMsgType().equals(TypeMessage.STORED)){
-				if(!peer.getFileKeeper().fileExists(msg.getFileId())) {
-					FileInstance f = new FileInstance(msg.getFileId(), msg.getRepDegree());
-					peer.getFileKeeper().addFile(f);
-					System.out.println("Added file " + msg.getFileId() + " to file keeper...");
+			if (msg.getMsgType().equals(TypeMessage.STORED)){					
+				
+				if(peer.getInitiatorFiles().fileExists(msg.getFileId())) {
+					FileInstance f = peer.getInitiatorFiles().getFile(msg.getFileId());
+					
+					if(!f.chunkExists(msg.getChunkNo())) {
+						Chunk chunk = new Chunk(msg.getFileId(), msg.getChunkNo(), msg.getBody());
+						f.addChunk(chunk);
+					}
+					
+					Chunk c = f.getChunk(msg.getChunkNo());
+	
+					System.out.println("BACKUP: Replication degree of chunk no. " + c.getChunkNo() + " increased for file " + f.getFileId());
+					c.incRepDegree();
 				}
-				
-				FileInstance f = peer.getFileKeeper().getFile(msg.getFileId());
-				
-				if(!f.chunkExists(msg.getChunkNo())) {
-					Chunk chunk = new Chunk(msg.getFileId(), msg.getChunkNo(), msg.getBody());
-					f.addChunk(chunk);
-				}
-				
-				Chunk c = f.getChunk(msg.getChunkNo());
-
-				System.out.println("BACKUP: Replication degree of chunk no. " + c.getChunkNo() + " increased for file " + f.getFileId());
-				c.incRepDegree();
 			}
-		}		
+		}
 	}
 }

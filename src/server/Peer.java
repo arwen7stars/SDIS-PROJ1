@@ -3,7 +3,7 @@ package server;
 import channels.BackupChannel;
 import channels.ControlChannel;
 import channels.RestoreChannel;
-import filesystem.FileKeeper;
+import filesystem.InitiatorFiles;
 import protocols.Backup;
 import protocols.Delete;
 import protocols.Reclaim;
@@ -19,7 +19,7 @@ public class Peer {
 	private RestoreChannel mdrChannel;			// restore channel (channel used to restore chunks of files)
 	
 	private int storageSpace;					// maximum storage space on this peer (will be used on reclaim protocol)
-	private FileKeeper fileKeeper;				// used to keep track of all files which backup started on this server
+	private InitiatorFiles initiatorFiles;		// used to keep track of all files which backup started on this server
 	
 	private Backup backupProtocol;				// protocol used to backup a file chunk
 	private Restore restoreProtocol;			// protocol used to restore a file chunk
@@ -52,7 +52,7 @@ public class Peer {
         this.mdbChannel = new BackupChannel(this, mdb_address, mdb_port);		// initialize backup channel on this peer (NOTE: channel constructor is called here)
         this.mdrChannel = new RestoreChannel(this, mdr_address, mdr_port);		// initialize restore channel on this peer (NOTE: channel constructor is called here)
         
-        this.fileKeeper = new FileKeeper();			// initialize file keeper
+        this.initiatorFiles = new InitiatorFiles();			// initialize file keeper
         
         this.backupProtocol = new Backup(this);		// initialize backup protocol on this peer
         this.restoreProtocol = new Restore(this);	// initialize restore protocol on this peer
@@ -98,8 +98,8 @@ public class Peer {
 		return storageSpace;
 	}
 
-	public FileKeeper getFileKeeper() {
-		return fileKeeper;
+	public InitiatorFiles getInitiatorFiles() {
+		return initiatorFiles;
 	}
 
 	public Backup getBackupProtocol() {
