@@ -1,10 +1,13 @@
 package protocols;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Random;
 import java.util.Vector;
+import java.util.concurrent.ThreadLocalRandom;
 
 import filesystem.Chunk;
 import filesystem.FileInstance;
@@ -53,7 +56,7 @@ public class Backup {
 		int bytesRead;
 		
 		try {
-			bytesRead = in.read(buffer);
+			bytesRead = in.read(buffer);			// read chunks of 64kb until all are read
 		
 			while(bytesRead != -1)
 			{	
@@ -67,28 +70,29 @@ public class Backup {
 			}
 			
 			if(bytesRead == 0){
-				if (!this.putchunk(version, senderId, fileId, chunkNo, repDegree, null)) {
+				if (!this.putchunk(version, senderId, fileId, chunkNo, repDegree, null)) {	// "If the file size is a multiple of the chunk size, the last chunk has size 0"
 					System.err.println("*** BACKUP: Error sending file!! ***");
 					return;
 				}
 			}
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public boolean putchunk(String version, String senderId, String fileId, int chunkNo, int repDegree, byte[] body) {
+	public boolean putchunk(String version, String senderId, String fileId, int chunkNo, int repDegree, byte[] body) throws FileNotFoundException, IOException {
         boolean done = false;
         int tries = 0;
         int delay = 1000;
 
         String header = Message.createHeader(TypeMessage.PUTCHUNK, version, senderId, fileId, chunkNo, repDegree);
         Message msg = null;
-        
+		
         if(body != null)
         	msg = new Message(header, body);		// creates PUTCHUNK message to send over the mdb channel
         else msg = new Message(header);
-        
+
         while (!done && tries < 5) {				// "The initiator will send at most 5 PUTCHUNK messages per chunk"
 			peer.getMdbChannel().sendMessage(msg);	// send message over the MDB channel (backup channel). All opened MDB channels will receive this message.
 			
@@ -105,7 +109,7 @@ public class Backup {
         	
         	int actualRepDegree = peer.getFileKeeper().getChunkRepDegree(msg.getFileId(), msg.getChunkNo());
         	
-        	System.out.println("\r\n\t\tACTUAL REPLICATION DEGREE OF CHUNK " + msg.getChunkNo() + ": " + actualRepDegree+ "\r\n");
+        	System.out.println("\n\t\tACTUAL REPLICATION DEGREE OF CHUNK " + msg.getChunkNo() + ": " + actualRepDegree+ "\n");
         	
         	if (repDegree <= actualRepDegree) {				// check whether desired replication degree (repDegree) has been reached
         		System.out.println("*** BACKUP: Backup of chunk " + msg.getChunkNo() + " from file " + msg.getFileId() + " was successful ***");

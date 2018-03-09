@@ -1,12 +1,8 @@
 package channels;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
-
 import filesystem.Chunk;
 import filesystem.FileInstance;
 import server.Peer;
-import utils.Constants;
 import utils.Message;
 import utils.TypeMessage;
 
@@ -18,20 +14,10 @@ public class ControlChannel extends Channel {
 	
 	@Override
 	public void run() {
-		byte[] buf = new byte[Constants.MAX_CHUNK_SIZE];
-		
-		while (true) {
-			DatagramPacket packet = new DatagramPacket(buf, buf.length);
+		while (true) {			
+			Message msg = receiveMessage();
 			
-			try{
-				socket.receive(packet);
-			} catch(IOException ioe){
-				ioe.printStackTrace();
-			}
-			
-			Message msg = new Message(packet);
-			
-			System.out.println("\r\nCONTROL CHANNEL - ServerID " + peer.getPeerId() + ": Message received\r\n");
+			System.out.println("\n\tCONTROL CHANNEL - ServerID " + peer.getPeerId() + ": Message received\n");
 			System.out.println(msg.getHeader());
 			
 			if (msg.getMsgType().equals(TypeMessage.STORED)){
@@ -51,7 +37,7 @@ public class ControlChannel extends Channel {
 				Chunk c = f.getChunk(msg.getChunkNo());
 
 				System.out.println("BACKUP: Replication degree of chunk no. " + c.getChunkNo() + " increased for file " + f.getFileId());
-				c.incRepDegree();				// if the number of peers is bigger than replication degree this number may not be correct for other peers other than initiator...
+				c.incRepDegree();
 			}
 		}		
 	}

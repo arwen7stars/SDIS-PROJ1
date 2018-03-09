@@ -1,7 +1,7 @@
 package channels;
 
 import server.Peer;
-import utils.Constants;
+import utils.Message;
 
 public class RestoreChannel extends Channel {
 
@@ -11,10 +11,11 @@ public class RestoreChannel extends Channel {
 	
 	@Override
 	public void run() {
-		byte[] buf = new byte[Constants.MAX_CHUNK_SIZE];
-
 		while (true) {
+			Message msg = receiveMessage();
 			
+			System.out.println("\n\tRESTORE CHANNEL - ServerID " + peer.getPeerId() + ": Message received\n");
+			System.out.println(msg.getHeader());
 		}		
 	}
 

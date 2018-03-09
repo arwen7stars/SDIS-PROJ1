@@ -1,5 +1,8 @@
 package channels;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -7,9 +10,11 @@ import java.net.MulticastSocket;
 import java.net.UnknownHostException;
 
 import server.Peer;
+import utils.Constants;
 import utils.Message;
 
 public abstract class Channel implements Runnable {
+	int num = 0;
 	protected Peer peer;				// peer subscribed to this channel
 	protected InetAddress address;		// channel's IP address
 	protected int port;					// channel's UDP port
@@ -54,7 +59,6 @@ public abstract class Channel implements Runnable {
 	 */
 	public void sendMessage(Message msg){
 		byte[] buffer = msg.getMsg();		// get byte array with the message content
-		
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, port);	// create datagram packet with the message content and the channel's IP address and UDP port as arguments
 
 		try {
@@ -63,5 +67,18 @@ public abstract class Channel implements Runnable {
 			System.out.println("CHANNEL: Error sending message");
 			e.printStackTrace();
 		}
+	}
+	
+	public Message receiveMessage() {
+		byte[] buf = new byte[Constants.MAX_CHUNK_SIZE+2000];
+		DatagramPacket packet = new DatagramPacket(buf, buf.length);		
+		try{
+			socket.receive(packet);
+		} catch(IOException ioe){
+			ioe.printStackTrace();
+		}
+		
+		Message msg = new Message(packet);
+		return msg;
 	}
 }

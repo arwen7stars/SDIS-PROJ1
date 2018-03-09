@@ -66,7 +66,7 @@ public class Peer {
 		System.out.println("Peer with id " + this.peerId + " ready!");
 		
 		if(this.peerId.equals("3")) {
-			this.backupProtocol.sendFileChunks("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\File.txt", this.protocolVersion, this.peerId, 2);
+			this.backupProtocol.sendFileChunks("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg", this.protocolVersion, this.peerId, 2);
 		}
 	}
 

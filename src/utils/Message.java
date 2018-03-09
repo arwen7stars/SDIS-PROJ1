@@ -1,7 +1,14 @@
 package utils;
 
-import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.DatagramPacket;
+import java.nio.charset.StandardCharsets;
 
 public class Message {
 	private TypeMessage msgType;
@@ -18,7 +25,7 @@ public class Message {
 	public Message(String header){
 		this.header = header;
 		this.body = null;
-		this.msg = this.header.getBytes();
+		this.msg = this.header.getBytes(StandardCharsets.ISO_8859_1);
 		
 		String tmp = new String(header);
 		this.setHeaderVariables(tmp);
@@ -26,7 +33,7 @@ public class Message {
 	
 	public Message(String header, byte[] body) {
 		byte[] message = new byte[header.getBytes().length + body.length];
-		byte[] header_array = header.getBytes();
+		byte[] header_array = header.getBytes(StandardCharsets.ISO_8859_1);
 		this.header = header;
 		this.body = body;
 		
@@ -40,34 +47,39 @@ public class Message {
 	
 	public Message(DatagramPacket packet){
 		byte[] content = packet.getData();
-		String received = null;
+		String match = new String("\r\n\r\n");
+					     
+		Pattern pattern = Pattern.compile(match);
+		CharSequence seq = new String(content);
+						    
+		Matcher matcher = pattern.matcher(seq);
 		
-		try {
-			received = new String(content, "ISO-8859-1");
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
+		matcher.find();
+		matcher.start();
+		matcher.end();
 		
-		String[] splitMsg = received.split("\r\n\r\n", 2);
-		
-		String header = splitMsg[0];
-		
+		byte[] headerBytes = Arrays.copyOfRange(content, 0, matcher.start());
+		String header = new String(headerBytes);
+
 		this.setHeaderVariables(header);
 		this.createHeader(this.msgType);
 
 		if( (this.msgType == TypeMessage.PUTCHUNK) || (this.msgType == TypeMessage.CHUNK) ){
-			this.body = splitMsg[1].getBytes();
+			this.body = Arrays.copyOfRange(content, matcher.end(), content.length);
+			
+			for(int i = this.body.length-1; i >= 0; i--) {
+				if(this.body[i] != '\0') {
+					this.body = Arrays.copyOfRange(this.body, 0, i+1);
+					break;
+				}
+			}
 		} else this.body = null;
 	
 		
 		if(this.body == null){
-			this.msg = this.header.getBytes();
+			this.msg = headerBytes;
 		} else {
-			byte[] message = new byte[this.header.getBytes().length + this.body.length];
-			
-			System.arraycopy(this.header.getBytes(), 0, message, 0, this.header.getBytes().length);
-			System.arraycopy(this.body, 0, message, this.header.getBytes().length, this.body.length);
-			this.msg = message;
+			this.msg = content;
 		}
 	}
 	

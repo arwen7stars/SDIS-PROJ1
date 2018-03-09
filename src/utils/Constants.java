@@ -1,5 +1,5 @@
 package utils;
 
 public class Constants {
-	public static final int MAX_CHUNK_SIZE = 65000;
+	public static final int MAX_CHUNK_SIZE = 64000;
 }

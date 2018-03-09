@@ -1,36 +1,26 @@
 package channels;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.DatagramPacket;
 
 import filesystem.Chunk;
 import server.Peer;
-import utils.Constants;
 import utils.Message;
 import utils.TypeMessage;
 
 public class BackupChannel extends Channel {
-
 	public BackupChannel(Peer peer, String address, String port) {
 		super(peer, address, port);
 	}
 	
 	@Override
 	public void run() {
-		byte[] buf = new byte[Constants.MAX_CHUNK_SIZE];
-
 		while (true) {
-			DatagramPacket packet = new DatagramPacket(buf, buf.length);
+			Message msg = receiveMessage();
 			
-			try{
-				socket.receive(packet);
-			} catch(IOException ioe){
-				ioe.printStackTrace();
-			}
-
-			Message msg = new Message(packet);
-			
-			System.out.println("\r\nBACKUP CHANNEL - ServerID " + peer.getPeerId() + ": Message received\r\n");
+			System.out.println("\n\tBACKUP CHANNEL - ServerID " + peer.getPeerId() + ": Message received\n");
 			System.out.println(msg.getHeader());
 			
 			if (msg.getMsgType().equals(TypeMessage.PUTCHUNK)){
