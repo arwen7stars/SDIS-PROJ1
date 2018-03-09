@@ -2,10 +2,10 @@ package filesystem;
 
 import java.util.Vector;
 
-public class FileKeeper {
+public class InitiatorFiles {
 	private Vector<FileInstance> files = new Vector<FileInstance>();
 	
-	public FileKeeper() {}
+	public InitiatorFiles() {}
 	
 	public boolean fileExists(String fileId) {
 		if(files != null){

@@ -1,13 +1,10 @@
 package protocols;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Random;
 import java.util.Vector;
-import java.util.concurrent.ThreadLocalRandom;
 
 import filesystem.Chunk;
 import filesystem.FileInstance;
@@ -33,15 +30,15 @@ public class Backup {
 		byte[] buffer = new byte[Constants.MAX_CHUNK_SIZE];			// buffer to get each chunk's data
 		int chunkNo = 0;
 		
-		if(!peer.getFileKeeper().fileExists(fileId)) {				// checks whether the file instance exists on this peer
+		if(!peer.getInitiatorFiles().fileExists(fileId)) {				// checks whether the file instance exists on this peer
 			FileInstance f = new FileInstance(fileId, repDegree);	// if file instance doesn't exist, create a new one
-			peer.getFileKeeper().addFile(f);
+			peer.getInitiatorFiles().addFile(f);
 			
 			System.out.println("Added file " + fileId + " to file keeper...");
 		} else {
 			Vector<Chunk> chunks = new Vector<Chunk>();						// if file already exists on file keeper...
-			peer.getFileKeeper().getFile(fileId).setChunks(chunks);			// ...reset chunks...
-			peer.getFileKeeper().getFile(fileId).setRepDegree(repDegree);	// ...and replication degree
+			peer.getInitiatorFiles().getFile(fileId).setChunks(chunks);			// ...reset chunks...
+			peer.getInitiatorFiles().getFile(fileId).setRepDegree(repDegree);	// ...and replication degree
 		}
 		
 		FileInputStream in = null;
@@ -102,12 +99,12 @@ public class Backup {
 				e.printStackTrace();
 			}
         	
-        	if (!peer.getFileKeeper().getFile(msg.getFileId()).chunkExists(msg.getChunkNo())) {		// checks if chunk instance already exists on this peer
+        	if (!peer.getInitiatorFiles().getFile(msg.getFileId()).chunkExists(msg.getChunkNo())) {		// checks if chunk instance already exists on this peer
         		Chunk chunk = new Chunk(msg.getFileId(), msg.getChunkNo(), msg.getBody());
-        		peer.getFileKeeper().getFile(msg.getFileId()).addChunk(chunk);						// if chunk instance does not exist on this peer, one is created
+        		peer.getInitiatorFiles().getFile(msg.getFileId()).addChunk(chunk);						// if chunk instance does not exist on this peer, one is created
 			}
         	
-        	int actualRepDegree = peer.getFileKeeper().getChunkRepDegree(msg.getFileId(), msg.getChunkNo());
+        	int actualRepDegree = peer.getInitiatorFiles().getChunkRepDegree(msg.getFileId(), msg.getChunkNo());
         	
         	System.out.println("\n\t\tACTUAL REPLICATION DEGREE OF CHUNK " + msg.getChunkNo() + ": " + actualRepDegree+ "\n");
         	
