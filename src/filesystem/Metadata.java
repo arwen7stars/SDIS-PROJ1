@@ -1,5 +1,6 @@
 package filesystem;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
@@ -68,6 +69,13 @@ public class Metadata {
 	    String fileId = sb.toString();
 		
 		return fileId;
+	}
+	
+	public static String createRestorePath(String peerId, String filename) {
+		new File(peerId).mkdirs();
+		String newName = peerId + "/" + filename;
+		
+		return newName;
 	}
 	
 	public String getFilePath() {

@@ -1,18 +1,27 @@
 package protocols;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
+import java.util.TreeMap;
 import java.util.Vector;
 
 import filesystem.Chunk;
 import filesystem.FileInstance;
+import filesystem.Metadata;
 import server.Peer;
+import utils.Constants;
 import utils.Message;
 import utils.TypeMessage;
 
 public class Restore {
 	private Peer peer;
 	private HashMap<Integer, byte[]> restoredChunks = new HashMap<Integer, byte[]>();
+	private Vector<Integer> chunksToResend = new Vector<Integer>();
 	
 	public Restore(Peer peer) {
 		this.peer = peer;
@@ -53,6 +62,7 @@ public class Restore {
 	public void restoreFile(String filePath) {
 		System.out.println("*** RESTORE: Restoring file with path " + filePath + " ***");
 		restoredChunks = new HashMap<Integer, byte[]>();			// reset restored chunks
+		chunksToResend = new Vector<Integer>();						// reset chunks to resend
 
 		String fileId = peer.getInitiatorFiles().getFileId(filePath);
 		
@@ -68,6 +78,92 @@ public class Restore {
 			getchunk(peer.getProtocolVersion(), peer.getPeerId(), fileId, i);
 		}
 		
+		try {
+			Thread.sleep(chunks.size() * 1000);
+		} catch(InterruptedException e){
+			e.printStackTrace();
+		}
+		
+		if(restoredChunks.size() < chunks.size()) {
+			System.out.println("*** RESTORE: Some chunks were lost :( Let's try again! ***");
+			for(int i = 1; i < Constants.MAX_TRIES; i++){
+				this.resendChunks(fileId, chunks.size());
+				
+				if(restoredChunks.size() == chunks.size())
+					break;
+			}
+		}
+		
+		String filename = peer.getInitiatorFiles().getFilename(fileId);
+		System.out.println("*** RESTORE: Filename of the file to be restored " + filename + " ***");
+		
+		if(filename != null) {
+			putFileTogether(filename);
+		} else {
+			System.out.println("*** RESTORE: Filename not found.");
+		}
+	}
+	
+	public void putFileTogether(String filename) {
+		String restorePath = Metadata.createRestorePath(peer.getPeerId(), filename);
+		Map<Integer, byte[]> sortedByKey = new TreeMap<Integer, byte[]>(restoredChunks);
+		
+		FileOutputStream fos = null;
+	
+		try {
+			fos = new FileOutputStream(new File(restorePath), true);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println("\t\tRESTORED CHUNKS " + restoredChunks.size());
+		
+		try {
+			for (Map.Entry<Integer, byte[]> entry : sortedByKey.entrySet()) {
+				byte[] fileData = entry.getValue();
+				fos.write(fileData);
+			}
+	
+			fos.flush();
+	        fos.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println("RESTORE: File successfully restored!!");
+	}
+	
+	public void resendChunks(String fileId, int noChunks) {
+		Vector<Integer> tmp = new Vector<Integer>();
+		
+		for(Map.Entry<Integer, byte[]> entry : restoredChunks.entrySet()){
+			tmp.add(entry.getKey());
+		}
+		
+		chunksToResend = Restore.findMissingNumbers(tmp, noChunks-1);
+		
+		for(int i = 0; i < chunksToResend.size(); i++) {
+			this.getchunk(peer.getProtocolVersion(), peer.getPeerId(), fileId, chunksToResend.get(i));
+		}
+		
+	}
+	
+	public static Vector<Integer> findMissingNumbers(Vector<Integer> a, int last) {
+		Vector<Integer> missingNumbers = new Vector<Integer>();
+
+		// inside the array: at index i, a number is missing if it is between a[i-1]+1 and a[i]-1
+		for (int i = 1; i < a.size(); i++) {
+		    for (int j = 1 + a.get(i-1); j < a.get(i); j++) {
+		    	missingNumbers.add(j);
+		    }
+		}
+		
+		// after the array: numbers between a[a.length-1] and last
+		for (int i = 1+ a.get(a.size()-1); i <= last; i++) {
+			missingNumbers.add(i);
+		}
+		
+		return missingNumbers;
 	}
 	
 	public void addToRestoredChunks(int chunkNo, byte[] fileData) {

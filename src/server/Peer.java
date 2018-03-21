@@ -74,6 +74,7 @@ public class Peer {
 		
 		if(this.peerId.equals("3")) {
 			backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg", 2);
+			restore("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg");
 		}
 	}
 	

@@ -40,6 +40,15 @@ public class InitiatorFilesKeeper {
 		return null;
 	}
 	
+	public String getFilename(String fileId) {
+		for(int i = 0; i < files.size(); i++) {
+			if(files.get(i).getFileId().equals(fileId)) {
+				return files.get(i).getFileMetadata().getFilename();
+			}
+		}
+		return null;
+	}
+	
 	public Chunk getChunk(String fileId, int chunkNo) {
 		FileInstance f = this.getFile(fileId);
 		Chunk c = f.getChunk(chunkNo);

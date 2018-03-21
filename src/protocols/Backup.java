@@ -97,8 +97,8 @@ public class Backup {
         	msg = new Message(header, body);		// creates PUTCHUNK message to send over the mdb channel
         else msg = new Message(header);
 
-        while (!done && tries < 5) {				// "The initiator will send at most 5 PUTCHUNK messages per chunk"
-			peer.getMdbChannel().sendMessage(msg);	// send message over the MDB channel (backup channel). All opened MDB channels will receive this message.
+        while (!done && tries < Constants.MAX_TRIES) {		// "The initiator will send at most 5 PUTCHUNK messages per chunk"
+			peer.getMdbChannel().sendMessage(msg);			// send message over the MDB channel (backup channel). All opened MDB channels will receive this message.
 			
         	try {
 				Thread.sleep(delay);				// "The initiator-peer collects the confirmation messages during a time interval of one second"
