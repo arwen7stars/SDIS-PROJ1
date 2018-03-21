@@ -22,6 +22,7 @@ public class ControlChannel extends Channel {
 			
 			if (msg.getMsgType().equals(TypeMessage.STORED)){					
 				
+				Chunk bChunk = null;
 				if(peer.getInitiatorFiles().fileExists(msg.getFileId())) {
 					FileInstance f = peer.getInitiatorFiles().getFile(msg.getFileId());
 					
@@ -34,6 +35,12 @@ public class ControlChannel extends Channel {
 	
 					System.out.println("BACKUP: Replication degree of chunk no. " + c.getChunkNo() + " increased for file " + f.getFileId());
 					c.incRepDegree();
+				} else if ((bChunk = peer.getChunkBackedUp(msg.getFileId(), msg.getChunkNo())) != null) {
+					System.out.println("BACKUP: Storing info of chunk No. " + msg.getChunkNo());
+
+					bChunk.incRepDegree();
+					
+					peer.updateChunksFile(bChunk.getFileId(), bChunk.getChunkNo(), bChunk.getActualRepDegree());
 				}
 			}
 		}
