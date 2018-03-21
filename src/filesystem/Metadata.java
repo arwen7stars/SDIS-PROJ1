@@ -11,6 +11,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class Metadata {
+	private String filePath;
 	private String filename;
 	private String lastModified;
 	private String owner;
@@ -23,6 +24,7 @@ public class Metadata {
 			attr = Files.readAttributes(file, BasicFileAttributes.class);
 			UserPrincipal owner = Files.getOwner(file);
 			
+			this.filePath = path;
 			this.filename = file.getFileName().toString();	
 			this.lastModified = attr.lastModifiedTime().toString();
 			this.owner = owner.getName();
@@ -66,6 +68,10 @@ public class Metadata {
 	    String fileId = sb.toString();
 		
 		return fileId;
+	}
+	
+	public String getFilePath() {
+		return filePath;
 	}
 
 	public String getFilename() {

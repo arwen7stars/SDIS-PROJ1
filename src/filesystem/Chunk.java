@@ -53,6 +53,10 @@ public class Chunk {
 	public void incRepDegree() {
 		actualRepDegree++;
 	}
+	
+	public void setRepDegree(int repDegree) {
+		this.actualRepDegree = repDegree;
+	}
 
 	public String getFileId() {
 		return fileId;

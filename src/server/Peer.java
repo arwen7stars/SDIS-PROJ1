@@ -1,19 +1,10 @@
 package server;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-
-import java.util.ArrayList;
-
 import channels.BackupChannel;
 import channels.ControlChannel;
 import channels.RestoreChannel;
-import filesystem.Chunk;
-import filesystem.FileKeeper;
+import filesystem.BackedUpChunksKeeper;
+import filesystem.InitiatorFilesKeeper;
 import protocols.Backup;
 import protocols.Delete;
 import protocols.Reclaim;
@@ -28,15 +19,17 @@ public class Peer {
 	private BackupChannel mdbChannel;			// backup channel (channel used to backup chunks of files)
 	private RestoreChannel mdrChannel;			// restore channel (channel used to restore chunks of files)
 	
-	private int storageSpace;					// maximum storage space on this peer (will be used on reclaim protocol)
-	private FileKeeper initiatorFiles;			// used to keep track of all files which backup started on this server
-	private ArrayList<Chunk> backedUpFiles;		// used to keep track of all chunks that were backed up on this peer
-	
 	private Backup backupProtocol;				// protocol used to backup a file chunk
 	private Restore restoreProtocol;			// protocol used to restore a file chunk
 	private Delete deleteProtocol;				// protocol used to delete a file
 	private Reclaim reclaimProtocol;			// protocol used to reclaim space on a peer
 	
+	private int storageSpace;						// maximum storage space on this peer (will be used on reclaim protocol)
+	private InitiatorFilesKeeper initiatorFiles;	// used to keep track of all files which backup started on this server
+	private BackedUpChunksKeeper backedUpChunks;	// used to keep track of all chunks that were backed up on this peer
+	private boolean restoreDelay;					// used to check whether the peer is sleeping (used on restore protocol)
+	private boolean stopChunkMsg;					// used to check whether the peer should send CHUNK message (used on restore protocol)
+
 	public static void main(String[] args) {
 		// TODO : RMI Implementation
 		Peer peer = new Peer(args);
@@ -63,8 +56,10 @@ public class Peer {
         this.mdbChannel = new BackupChannel(this, mdb_address, mdb_port);		// initialize backup channel on this peer (NOTE: channel constructor is called here)
         this.mdrChannel = new RestoreChannel(this, mdr_address, mdr_port);		// initialize restore channel on this peer (NOTE: channel constructor is called here)
         
-        this.initiatorFiles = new FileKeeper();
-        this.backedUpFiles = new ArrayList<Chunk>();
+        this.initiatorFiles = new InitiatorFilesKeeper();
+        this.backedUpChunks = new BackedUpChunksKeeper(this);
+        this.restoreDelay = false;
+        this.stopChunkMsg = false;
         
         this.backupProtocol = new Backup(this);		// initialize backup protocol on this peer
         this.restoreProtocol = new Restore(this);	// initialize restore protocol on this peer
@@ -78,114 +73,24 @@ public class Peer {
 		System.out.println("Peer with id " + this.peerId + " ready!");
 		
 		if(this.peerId.equals("3")) {
-			this.backupProtocol.sendFileChunks("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg", this.protocolVersion, this.peerId, 2);
+			backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg", 2);
 		}
 	}
 	
-	public void updateChunksFile(String fileId, int chunkNo, int repDegree) {
-        String line;
-        String fileContent = "";
-        String newLine = fileId + "," + String.valueOf(chunkNo) + "," + String.valueOf(repDegree) + "\n";
-        ArrayList<String> lines = new ArrayList<String>();
-        
-        new File(peerId).mkdirs();
-		String newName = peerId + "/fileChunks.txt";
-        File file=new File(newName);
-        
-        if(!file.exists()){
-            try {
-				file.createNewFile();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-            
-            System.out.println(newName + " created...");
-            fileContent += newLine;
-        } else {
-    		FileReader fr = null;
-    		BufferedReader br = null;
-    		
-        	System.out.println(newName + " already exists.");
-	        try{
-	            fr = new FileReader(file);
-	            br = new BufferedReader(fr);
-	
-	            while((line = br.readLine()) != null){
-	            	lines.add(line);
-	            }
-	        } catch (IOException e) {
-				e.printStackTrace();
-			} finally {
-	            try {
-					if (br != null)
-						br.close();
-
-					if (fr != null)
-						fr.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-	        boolean found = false;
-	        
-	        for(int i = 0; i < lines.size(); i++) {
-            	String[] parts = lines.get(i).split(",");
-
-            	if(parts[0].equals(fileId) && parts[1].equals(String.valueOf(chunkNo))) {
-            		System.out.println("Updating " + fileId + "chunk No. " + chunkNo + " on " + newName);
-            		fileContent += newLine;
-            		found = true;
-            	} else {
-            		fileContent += lines.get(i);
-            		fileContent += "\n";
-            	}
-	        }
-	        
-        	if(!found) {
-        		System.out.println("Adding " + fileId + "chunk No. " + chunkNo + " on " + newName);
-        		fileContent += newLine;
-        	}
-        }
-        
-        FileWriter fw = null;
-        BufferedWriter bw = null;
-        
-        try {
-            fw = new FileWriter(newName, false);
-            bw = new BufferedWriter(fw);
-            
-            String[] parts = fileContent.split("\\r?\\n");
-            for(int i = 0; i < parts.length; i++) {
-                bw.write(parts[i]);
-                bw.newLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-			try {
-				if (bw != null)
-					bw.close();
-
-				if (fw != null)
-					fw.close();
-
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-        }
+	public void backup(String filePath, int replicationDegree) {
+		backupProtocol.sendFileChunks(filePath, protocolVersion, peerId, replicationDegree);
 	}
 	
-	public void addBackedUpChunk(Chunk c) {
-		backedUpFiles.add(c);
+	public void restore(String filePath) {
+		restoreProtocol.restoreFile(filePath);
 	}
 	
-	public Chunk getChunkBackedUp(String fileId, int chunkNo) {
-		for(Chunk c : backedUpFiles) {
-			if(c.getFileId().equals(fileId) && (c.getChunkNo() == chunkNo)) {
-				return c;
-			}
-		}
-		return null;
+	public void setRestoreDelay(boolean restoreDelay) {
+		this.restoreDelay = restoreDelay;
+	}
+	
+	public void setStopChunkMsg(boolean stopChunkMsg) {
+		this.stopChunkMsg = stopChunkMsg;
 	}
 
 	public String getProtocolVersion() {
@@ -216,12 +121,20 @@ public class Peer {
 		return storageSpace;
 	}
 
-	public FileKeeper getInitiatorFiles() {
+	public InitiatorFilesKeeper getInitiatorFiles() {
 		return initiatorFiles;
 	}
 	
-	public ArrayList<Chunk> getBackedUpFiles() {
-		return backedUpFiles;
+	public BackedUpChunksKeeper getBackedUpFiles() {
+		return backedUpChunks;
+	}
+	
+	public boolean getRestoreDelay() {
+		return restoreDelay;
+	}
+	
+	public boolean getStopChunkMsg() {
+		return stopChunkMsg;
 	}
 
 	public Backup getBackupProtocol() {

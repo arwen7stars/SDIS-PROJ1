@@ -25,7 +25,7 @@ public class BackupChannel extends Channel {
 					if(chunk.store(peer.getPeerId())){						
 						System.out.println("*** BACKUP: Chunk " + msg.getChunkNo() + " stored on server " + peer.getPeerId() + " ***");
 						
-						peer.addBackedUpChunk(chunk);
+						peer.getBackedUpFiles().addBackedUpChunk(chunk);
 						peer.getBackupProtocol().stored(msg.getVersion(), peer.getPeerId(), msg.getFileId(), msg.getChunkNo());
 					}
 

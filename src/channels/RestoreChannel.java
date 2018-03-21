@@ -2,6 +2,7 @@ package channels;
 
 import server.Peer;
 import utils.Message;
+import utils.TypeMessage;
 
 public class RestoreChannel extends Channel {
 
@@ -16,6 +17,18 @@ public class RestoreChannel extends Channel {
 			
 			System.out.println("\n\tRESTORE CHANNEL - ServerID " + peer.getPeerId() + ": Message received\n");
 			System.out.println(msg.getHeader());
+			
+			if(!msg.getSenderId().equals(peer.getPeerId())) {
+				if (msg.getMsgType().equals(TypeMessage.CHUNK)){
+					if(peer.getRestoreDelay()) {
+						peer.setStopChunkMsg(true);
+					}
+				}
+				
+				if(msg.getMsgType().equals(TypeMessage.CHUNK)){
+					peer.getRestoreProtocol().addToRestoredChunks(msg.getChunkNo(), msg.getBody());
+				}
+			}
 		}		
 	}
 

@@ -2,10 +2,10 @@ package filesystem;
 
 import java.util.Vector;
 
-public class FileKeeper {
+public class InitiatorFilesKeeper {
 	private Vector<FileInstance> files = new Vector<FileInstance>();
 	
-	public FileKeeper() {}
+	public InitiatorFilesKeeper() {}
 	
 	public boolean fileExists(String fileId) {
 		if(files != null){
@@ -31,6 +31,15 @@ public class FileKeeper {
 		return null;
 	}
 	
+	public String getFileId(String filePath) {
+		for(int i = 0; i < files.size(); i++) {
+			if(files.get(i).getFileMetadata().getFilePath().equals(filePath)) {
+				return files.get(i).getFileId();
+			}
+		}
+		return null;
+	}
+	
 	public Chunk getChunk(String fileId, int chunkNo) {
 		FileInstance f = this.getFile(fileId);
 		Chunk c = f.getChunk(chunkNo);
@@ -43,6 +52,11 @@ public class FileKeeper {
 		Chunk c = f.getChunk(chunkNo);
 		
 		return c.getActualRepDegree();
+	}
+	
+	public String getChunkPath(String peerId, String fileId, int chunkNo) {
+		String chunkname = ".\\" + peerId + "\\" + fileId + ".part" + chunkNo;
+		return chunkname;
 	}
 
 	public Vector<FileInstance> getFiles() {
