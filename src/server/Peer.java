@@ -1,5 +1,11 @@
 package server;
 
+import java.rmi.registry.Registry;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+import channels.RMIInterface;
 import channels.BackupChannel;
 import channels.ControlChannel;
 import channels.RestoreChannel;
@@ -10,7 +16,7 @@ import protocols.Delete;
 import protocols.Reclaim;
 import protocols.Restore;
 
-public class Peer {
+public class Peer implements RMIInterface{
 	private String protocolVersion;				// version of the protocol
 	private String peerId;						// peer identifier (must be unique!)
 	private String serviceAp;					// name of the remote object providing the testing service (will be used on the client side to test the application)
@@ -30,9 +36,51 @@ public class Peer {
 	private boolean restoreDelay;					// used to check whether the peer is sleeping (used on restore protocol)
 	private boolean stopChunkMsg;					// used to check whether the peer should send CHUNK message (used on restore protocol)
 
+	public String RMImessage(String message) throws RemoteException {
+		System.out.println(message);
+		String[] request = message.split(" ");
+		
+		switch( request[0] ) {
+		case "BACKUP":
+			//backup(request[1], Integer.parseInt(request[2]));
+			break;
+		case "RESTORE":
+			//restore(request[1]);
+			break;
+		case "DELETE":
+			//delete(request[1]);
+			break;
+		case "RECLAIM":
+			System.out.println("");//TODO
+			break;
+		case "STATE":
+			System.out.println("");//TODO
+			break;
+		default:
+			System.out.println("ERRO!");//TODO
+			break;
+		}
+		
+    	return request[0];
+    }
+	
+	 
 	public static void main(String[] args) {
 		// TODO : RMI Implementation
-		Peer peer = new Peer(args);
+		try {
+			Peer peer = new Peer(args);
+		    RMIInterface stub = (RMIInterface) UnicastRemoteObject.exportObject(peer, 0);
+	
+		    // Bind the remote object's stub in the registry
+		    Registry registry = LocateRegistry.getRegistry();
+		    registry.bind("SERVER", stub);
+		    System.err.println("Server ready");
+		    
+		} catch (Exception e) {
+		    System.err.println("Server exception: " + e.toString());
+		    e.printStackTrace();
+		}
+		
 	}
 	
 	public Peer(String[] args) {
@@ -71,17 +119,18 @@ public class Peer {
 		new Thread(mdrChannel).start();				// start restore channel
 		
 		System.out.println("Peer with id " + this.peerId + " ready!");
-		
+		/*
 		if(this.peerId.equals("3")) {
-			backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf", 2);
-			restore("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf");
-			//delete("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf");
+			backup("C:\\Users\\Clï¿½udia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf", 2);
+			restore("C:\\Users\\Clï¿½udia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf");
+			//delete("C:\\Users\\Clï¿½udia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf");
 		} else if(this.peerId.equals("2")) {
-			backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg", 2);
-			restore("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg");
+			backup("C:\\Users\\Clï¿½udia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg", 2);
+			restore("C:\\Users\\Clï¿½udia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg");
 		} else if(this.peerId.equals("1")) {
-			backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\File.txt", 3);
+			backup("C:\\Users\\Clï¿½udia Marinho\\Documents\\NEON\\SDIS\\File.txt", 3);
 		}
+		*/
 	}
 	
 	public void backup(String filePath, int replicationDegree) {
