@@ -15,8 +15,8 @@ public class RestoreChannel extends Channel {
 		while (true) {
 			Message msg = receiveMessage();
 			
-			System.out.println("\n\tRESTORE CHANNEL - ServerID " + peer.getPeerId() + ": Message received\n");
-			System.out.println(msg.getHeader());
+			//System.out.println("\n\tRESTORE CHANNEL - ServerID " + peer.getPeerId() + ": Message received\n");
+			//System.out.print(msg.getHeader());
 			
 			if(!msg.getSenderId().equals(peer.getPeerId())) {
 				if (msg.getMsgType().equals(TypeMessage.CHUNK)){

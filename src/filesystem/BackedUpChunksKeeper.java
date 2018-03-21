@@ -57,7 +57,6 @@ public class BackedUpChunksKeeper {
         	FileReader fr = null;
     		BufferedReader br = null;
     		
-        	System.out.println(newName + " already exists.");
 	        try{
 	            fr = new FileReader(file);
 	            br = new BufferedReader(fr);
@@ -132,7 +131,6 @@ public class BackedUpChunksKeeper {
     		FileReader fr = null;
     		BufferedReader br = null;
     		
-        	System.out.println(newName + " already exists.");
 	        try{
 	            fr = new FileReader(file);
 	            br = new BufferedReader(fr);
@@ -159,7 +157,7 @@ public class BackedUpChunksKeeper {
             	String[] parts = lines.get(i).split(",");
 
             	if(parts[0].equals(fileId) && parts[1].equals(String.valueOf(chunkNo))) {
-            		System.out.println("Updating " + fileId + "chunk No. " + chunkNo + " on " + newName);
+            		//System.out.println("Updating " + fileId + "chunk No. " + chunkNo + " on " + newName);
             		fileContent += newLine;
             		found = true;
             	} else {
@@ -169,7 +167,7 @@ public class BackedUpChunksKeeper {
 	        }
 	        
         	if(!found) {
-        		System.out.println("Adding " + fileId + "chunk No. " + chunkNo + " on " + newName);
+        		//System.out.println("Adding " + fileId + "chunk No. " + chunkNo + " on " + newName);
         		fileContent += newLine;
         	}
         }

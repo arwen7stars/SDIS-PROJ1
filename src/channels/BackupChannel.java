@@ -15,8 +15,8 @@ public class BackupChannel extends Channel {
 		while (true) {
 			Message msg = receiveMessage();
 			
-			System.out.println("\n\tBACKUP CHANNEL - ServerID " + peer.getPeerId() + ": Message received\n");
-			System.out.println(msg.getHeader());
+			//System.out.println("\n\tBACKUP CHANNEL - ServerID " + peer.getPeerId() + ": Message received\n");
+			//System.out.print(msg.getHeader());
 			
 			if (msg.getMsgType().equals(TypeMessage.PUTCHUNK)){
 				if(!peer.getPeerId().equals(msg.getSenderId())) {		// a peer can't store its own files!

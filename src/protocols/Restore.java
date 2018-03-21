@@ -31,6 +31,15 @@ public class Restore {
 		String header = Message.createHeader(TypeMessage.GETCHUNK, version, senderId, fileId, chunkNo);
 		Message msg = new Message(header);
 		
+		Random randomGenerator = new Random();
+		Integer randomInt = randomGenerator.nextInt(400);
+		
+		try {
+			Thread.sleep(randomInt);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
 		peer.getMcChannel().sendMessage(msg);
 	}
 	
@@ -120,6 +129,7 @@ public class Restore {
 		
 		try {
 			for (Map.Entry<Integer, byte[]> entry : sortedByKey.entrySet()) {
+				System.out.println("Writing data of chunk " + entry.getKey());
 				byte[] fileData = entry.getValue();
 				fos.write(fileData);
 			}
@@ -167,7 +177,6 @@ public class Restore {
 	}
 	
 	public void addToRestoredChunks(int chunkNo, byte[] fileData) {
-		System.out.println("\t\t*** RESTORE: Chunk added to restored chunks " + chunkNo);
 		if(!restoredChunks.containsKey(chunkNo))
 			restoredChunks.put(chunkNo, fileData);
 	}

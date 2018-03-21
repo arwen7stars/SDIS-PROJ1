@@ -17,8 +17,8 @@ public class ControlChannel extends Channel {
 		while (true) {			
 			Message msg = receiveMessage();
 			
-			System.out.println("\n\tCONTROL CHANNEL - ServerID " + peer.getPeerId() + ": Message received\n");
-			System.out.println(msg.getHeader());
+			//System.out.println("\n\tCONTROL CHANNEL - ServerID " + peer.getPeerId() + ": Message received\n");
+			//System.out.print(msg.getHeader());
 			
 			if (msg.getMsgType().equals(TypeMessage.STORED)){					
 				
