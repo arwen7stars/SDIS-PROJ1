@@ -75,6 +75,12 @@ public class Peer {
 		if(this.peerId.equals("3")) {
 			backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf", 2);
 			restore("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf");
+			//delete("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf");
+		} else if(this.peerId.equals("2")) {
+			backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg", 2);
+			restore("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg");
+		} else if(this.peerId.equals("1")) {
+			backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\File.txt", 3);
 		}
 	}
 	
@@ -84,6 +90,10 @@ public class Peer {
 	
 	public void restore(String filePath) {
 		restoreProtocol.restoreFile(filePath);
+	}
+	
+	public void delete(String filePath) {
+		deleteProtocol.deleteFile(filePath);
 	}
 	
 	public void setRestoreDelay(boolean restoreDelay) {

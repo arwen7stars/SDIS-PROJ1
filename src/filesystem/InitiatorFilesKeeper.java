@@ -1,5 +1,6 @@
 package filesystem;
 
+import java.io.File;
 import java.util.Vector;
 
 public class InitiatorFilesKeeper {
@@ -21,7 +22,27 @@ public class InitiatorFilesKeeper {
 	public void addFile(FileInstance f) {
 		files.addElement(f);
 	}
-
+	
+	public boolean deleteFile(String fileId) {
+		FileInstance f = this.getFile(fileId);
+		
+		if(f != null) {
+			File file = new File(f.getFileMetadata().getFilePath());
+    		
+			if (file.delete()) {
+    			System.out.println(file.getName() + " was deleted!");
+    		} else {
+    			System.out.println("Delete operation has failed.");
+    		}
+			
+			files.remove(f);
+			return true;
+		} else {
+			System.out.println("*** DELETE: File has already been deleted from this peer.***");
+			return false;
+		}
+	}
+	
 	public FileInstance getFile(String fileId) {
 		for(int i = 0; i < files.size(); i++) {
 			if(files.get(i).getFileId().equals(fileId)){
@@ -61,11 +82,6 @@ public class InitiatorFilesKeeper {
 		Chunk c = f.getChunk(chunkNo);
 		
 		return c.getActualRepDegree();
-	}
-	
-	public String getChunkPath(String peerId, String fileId, int chunkNo) {
-		String chunkname = ".\\" + peerId + "\\" + fileId + ".part" + chunkNo;
-		return chunkname;
 	}
 
 	public Vector<FileInstance> getFiles() {

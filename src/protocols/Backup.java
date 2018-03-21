@@ -89,7 +89,7 @@ public class Backup {
         boolean done = false;
         int tries = 0;
         int delay = 1000;
-
+        
         String header = Message.createHeader(TypeMessage.PUTCHUNK, version, senderId, fileId, chunkNo, repDegree);
         Message msg = null;
 		
@@ -98,7 +98,7 @@ public class Backup {
         else msg = new Message(header);
 
         while (!done && tries < Constants.MAX_TRIES) {		// "The initiator will send at most 5 PUTCHUNK messages per chunk"
-			peer.getMdbChannel().sendMessage(msg);			// send message over the MDB channel (backup channel). All opened MDB channels will receive this message.
+        	peer.getMdbChannel().sendMessage(msg);			// send message over the MDB channel (backup channel). All opened MDB channels will receive this message.
 			
         	try {
 				Thread.sleep(delay);				// "The initiator-peer collects the confirmation messages during a time interval of one second"
@@ -125,7 +125,7 @@ public class Backup {
         		
         		System.out.println("NUMBER OF TRIES " + tries);
         		
-        		if(tries > 5) {
+        		if(tries > Constants.MAX_TRIES) {
         			System.err.println("*** BACKUP: Error sending PUTCHUNK message. Maximum number of tries achieved ***");
         			return false;
         		}

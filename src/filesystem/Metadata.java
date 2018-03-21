@@ -78,6 +78,11 @@ public class Metadata {
 		return newName;
 	}
 	
+	public static String getChunkPath(String peerId, String fileId, int chunkNo) {
+		String chunkname = ".\\" + peerId + "\\" + fileId + ".part" + chunkNo;
+		return chunkname;
+	}
+	
 	public String getFilePath() {
 		return filePath;
 	}

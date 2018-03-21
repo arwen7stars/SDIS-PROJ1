@@ -37,7 +37,7 @@ public class ControlChannel extends Channel {
 					c.incRepDegree();
 					
 					System.out.println("BACKUP: Replication degree of chunk no. " + c.getChunkNo() + " increased for file " + f.getFileId());
-				} else if ((bChunk = peer.getBackedUpFiles().getChunkBackedUp(msg.getFileId(), msg.getChunkNo())) != null) {
+				} else if ((bChunk = peer.getBackedUpFiles().getBackedUpChunk(msg.getFileId(), msg.getChunkNo())) != null) {
 					System.out.println("BACKUP: Storing info of chunk No. " + msg.getChunkNo());
 
 					bChunk.incRepDegree();
@@ -45,9 +45,11 @@ public class ControlChannel extends Channel {
 				}
 			} else if (msg.getMsgType().equals(TypeMessage.GETCHUNK)) {
 				Chunk c = null;
-				if ((c = peer.getBackedUpFiles().getChunkBackedUp(msg.getFileId(), msg.getChunkNo())) != null) {
+				if ((c = peer.getBackedUpFiles().getBackedUpChunk(msg.getFileId(), msg.getChunkNo())) != null) {
 					peer.getRestoreProtocol().chunk(msg.getVersion(), msg.getFileId(), msg.getChunkNo(), c.getFileData());
 				}
+			} else if (msg.getMsgType().equals(TypeMessage.DELETE)) {
+				peer.getBackedUpFiles().deleteChunksStorage(msg.getFileId());
 			}
 		}
 	}

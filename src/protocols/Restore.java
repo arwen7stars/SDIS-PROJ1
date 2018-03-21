@@ -20,7 +20,8 @@ import utils.TypeMessage;
 
 public class Restore {
 	private Peer peer;
-	private HashMap<Integer, byte[]> restoredChunks = new HashMap<Integer, byte[]>();
+	private HashMap<String, HashMap<Integer,byte[]>> restoredChunks = new HashMap<String, HashMap<Integer,byte[]>>();
+	//private HashMap<Integer, byte[]> restoredChunks = new HashMap<Integer, byte[]>();
 	private Vector<Integer> chunksToResend = new Vector<Integer>();
 	
 	public Restore(Peer peer) {
@@ -70,14 +71,19 @@ public class Restore {
 	
 	public void restoreFile(String filePath) {
 		System.out.println("*** RESTORE: Restoring file with path " + filePath + " ***");
-		restoredChunks = new HashMap<Integer, byte[]>();			// reset restored chunks
-		chunksToResend = new Vector<Integer>();						// reset chunks to resend
+		HashMap<Integer, byte[]> tmp = new HashMap<Integer, byte[]>();
+		
+		restoredChunks = new HashMap<String, HashMap<Integer,byte[]>>();			// reset restored chunks
+		chunksToResend = new Vector<Integer>();										// reset chunks to resend
 
 		String fileId = peer.getInitiatorFiles().getFileId(filePath);
+		
+		restoredChunks.put(fileId, tmp);
 		
 		if (fileId.equals(null)) {
 			System.err.println("*** RESTORE: The specified file doesn't exist on this server! ***");
 		}
+		
 		FileInstance f = peer.getInitiatorFiles().getFile(fileId);
 		Vector<Chunk> chunks = f.getChunks();
 		
@@ -93,12 +99,12 @@ public class Restore {
 			e.printStackTrace();
 		}
 		
-		if(restoredChunks.size() < chunks.size()) {
+		if(restoredChunks.get(fileId).size() < chunks.size()) {
 			System.out.println("*** RESTORE: Some chunks were lost :( Let's try again! ***");
 			for(int i = 1; i < Constants.MAX_TRIES; i++){
 				this.resendChunks(fileId, chunks.size());
 				
-				if(restoredChunks.size() == chunks.size())
+				if(restoredChunks.get(fileId).size() == chunks.size())
 					break;
 			}
 		}
@@ -107,15 +113,15 @@ public class Restore {
 		System.out.println("*** RESTORE: Filename of the file to be restored " + filename + " ***");
 		
 		if(filename != null) {
-			putFileTogether(filename);
+			putFileTogether(filename, fileId);
 		} else {
 			System.out.println("*** RESTORE: Filename not found.");
 		}
 	}
 	
-	public void putFileTogether(String filename) {
+	public void putFileTogether(String filename, String fileId) {
 		String restorePath = Metadata.createRestorePath(peer.getPeerId(), filename);
-		Map<Integer, byte[]> sortedByKey = new TreeMap<Integer, byte[]>(restoredChunks);
+		Map<Integer, byte[]> sortedByKey = new TreeMap<Integer, byte[]>(restoredChunks.get(fileId));
 		
 		FileOutputStream fos = null;
 	
@@ -125,7 +131,7 @@ public class Restore {
 			e.printStackTrace();
 		}
 		
-		System.out.println("\t\tRESTORED CHUNKS " + restoredChunks.size());
+		System.out.println("\t\tRESTORED CHUNKS " + restoredChunks.get(fileId).size());
 		
 		try {
 			for (Map.Entry<Integer, byte[]> entry : sortedByKey.entrySet()) {
@@ -145,8 +151,8 @@ public class Restore {
 	
 	public void resendChunks(String fileId, int noChunks) {
 		Vector<Integer> tmp = new Vector<Integer>();
-		
-		for(Map.Entry<Integer, byte[]> entry : restoredChunks.entrySet()){
+
+		for(Map.Entry<Integer, byte[]> entry : restoredChunks.get(fileId).entrySet()){
 			tmp.add(entry.getKey());
 		}
 		
@@ -176,16 +182,19 @@ public class Restore {
 		return missingNumbers;
 	}
 	
-	public void addToRestoredChunks(int chunkNo, byte[] fileData) {
-		if(!restoredChunks.containsKey(chunkNo))
-			restoredChunks.put(chunkNo, fileData);
+	public void addToRestoredChunks(String fileId, int chunkNo, byte[] fileData) {
+		if(restoredChunks.containsKey(fileId)) {
+			if(!restoredChunks.get(fileId).containsKey(chunkNo)) {
+				restoredChunks.get(fileId).put(chunkNo, fileData);
+			}
+		}
 	}
 	
 	public Peer getPeer() {
 		return peer;
 	}
 	
-	public HashMap<Integer, byte[]> getRestoredChunks() {
+	public HashMap<String, HashMap<Integer,byte[]>> getRestoredChunks() {
 		return restoredChunks;
 	}
 }
