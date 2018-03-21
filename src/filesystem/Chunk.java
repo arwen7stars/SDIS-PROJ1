@@ -25,7 +25,7 @@ public class Chunk {
 		
 		File f = new File(newName);
 		if(f.exists() && !f.isDirectory()) {
-			System.err.println("\r\n*** BACKUP: The chunk " + chunkNo + " from file " + fileId + " has already been stored on this peer! Store failed... ***");
+			System.out.println("\r\n*** BACKUP: The chunk " + chunkNo + " from file " + fileId + " has already been stored on this peer! Store failed... ***");
 			return false;
 		}
 		

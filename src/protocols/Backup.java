@@ -30,14 +30,15 @@ public class Backup {
 		byte[] buffer = new byte[Constants.MAX_CHUNK_SIZE];			// buffer to get each chunk's data
 		int chunkNo = 0;
 		
-		if(!peer.getInitiatorFiles().fileExists(fileId)) {				// checks whether the file instance exists on this peer
-			FileInstance f = new FileInstance(fileId, repDegree);	// if file instance doesn't exist, create a new one
+		if(!peer.getInitiatorFiles().fileExists(fileId)) {						// checks if backup protocol has already been called for this file
+			FileInstance f = new FileInstance(fileId, metadata, repDegree);		// if file doesn't exist on the initiator peer, create a new instance
 			peer.getInitiatorFiles().addFile(f);
 			
 			System.out.println("Added file " + fileId + " to file keeper...");
 		} else {
-			Vector<Chunk> chunks = new Vector<Chunk>();						// if file already exists on file keeper...
+			Vector<Chunk> chunks = new Vector<Chunk>();							// if file already exists on file keeper...
 			peer.getInitiatorFiles().getFile(fileId).setChunks(chunks);			// ...reset chunks...
+			peer.getInitiatorFiles().getFile(fileId).setMetadata(metadata); 	// ...and metadata...
 			peer.getInitiatorFiles().getFile(fileId).setRepDegree(repDegree);	// ...and replication degree
 		}
 		
@@ -46,8 +47,8 @@ public class Backup {
 		try {
 			in = new FileInputStream(path);
 		} catch (FileNotFoundException e) {
-			System.out.println("*** BACKUP: File was not opened correctly! Given path is not correct. ***");
-			e.printStackTrace();
+			System.err.println("*** BACKUP: File was not opened correctly! Given path is not correct. ***");
+			return;
 		}
 		
 		int bytesRead;
@@ -75,6 +76,12 @@ public class Backup {
 			
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+			try {
+				in.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	

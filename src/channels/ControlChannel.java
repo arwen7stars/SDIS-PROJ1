@@ -23,6 +23,8 @@ public class ControlChannel extends Channel {
 			if (msg.getMsgType().equals(TypeMessage.STORED)){					
 				
 				Chunk bChunk = null;
+				
+				// increasing replication degree for initiator peer
 				if(peer.getInitiatorFiles().fileExists(msg.getFileId())) {
 					FileInstance f = peer.getInitiatorFiles().getFile(msg.getFileId());
 					

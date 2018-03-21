@@ -3,13 +3,15 @@ package filesystem;
 import java.util.Vector;
 
 public class FileInstance {
-	private String fileId;
-	private int repDegree;
-	private Vector<Chunk> chunks;
+	private String fileId;				// fileId
+	private int repDegree;				// desired replication degree
+	private Metadata fileMetadata;
+	private Vector<Chunk> chunks;		// vector of file chunks
 	
-	public FileInstance(String fileId, int repDegree) {
+	public FileInstance(String fileId, Metadata metadata, int repDegree) {
 		this.fileId = fileId;
 		this.repDegree = repDegree;
+		this.fileMetadata = metadata;
 		this.chunks = new Vector<Chunk>();		
 	}
 	
@@ -32,6 +34,10 @@ public class FileInstance {
 		this.repDegree = repDegree;
 	}
 	
+	public void setMetadata(Metadata metadata) {
+		this.fileMetadata = metadata;
+	}
+	
 	public void setChunks(Vector<Chunk> chunks) {
 		this.chunks = chunks;
 	}
@@ -50,6 +56,10 @@ public class FileInstance {
 
 	public int getRepDegree() {
 		return repDegree;
+	}
+	
+	public Metadata getFileMetadata() {
+		return fileMetadata;
 	}
 
 	public Vector<Chunk> getChunks() {

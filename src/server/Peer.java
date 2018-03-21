@@ -3,12 +3,10 @@ package server;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+
 import java.util.ArrayList;
 
 import channels.BackupChannel;
@@ -80,7 +78,7 @@ public class Peer {
 		System.out.println("Peer with id " + this.peerId + " ready!");
 		
 		if(this.peerId.equals("3")) {
-			this.backupProtocol.sendFileChunks("/Users/fabiolasilva/Documents/Git Projects/SDIS/Projects/Ashe_ChampionshipSkin.jpg", this.protocolVersion, this.peerId, 2);
+			this.backupProtocol.sendFileChunks("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg", this.protocolVersion, this.peerId, 2);
 		}
 	}
 	
