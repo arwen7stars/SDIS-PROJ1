@@ -30,6 +30,15 @@ public class FileInstance {
 		this.chunks.add(c);
 	}
 	
+	public void deleteChunk(int chunkNo) {
+		for (Chunk c : chunks) {
+			if(c.getChunkNo() == chunkNo) {
+				chunks.remove(c);
+				break;
+			}
+		}
+	}
+	
 	public void setRepDegree(int repDegree) {
 		this.repDegree = repDegree;
 	}

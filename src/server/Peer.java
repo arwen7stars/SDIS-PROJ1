@@ -9,6 +9,7 @@ import protocols.Backup;
 import protocols.Delete;
 import protocols.Reclaim;
 import protocols.Restore;
+import utils.Constants;
 
 public class Peer {
 	private String protocolVersion;				// version of the protocol
@@ -24,7 +25,7 @@ public class Peer {
 	private Delete deleteProtocol;				// protocol used to delete a file
 	private Reclaim reclaimProtocol;			// protocol used to reclaim space on a peer
 	
-	private int storageSpace;						// maximum storage space on this peer (will be used on reclaim protocol)
+	private long storageSpace;						// maximum storage space in KB on this peer (will be used on reclaim protocol)
 	private InitiatorFilesKeeper initiatorFiles;	// used to keep track of all files which backup started on this server
 	private BackedUpChunksKeeper backedUpChunks;	// used to keep track of all chunks that were backed up on this peer
 	private boolean restoreDelay;					// used to check whether the peer is sleeping (used on restore protocol)
@@ -56,6 +57,7 @@ public class Peer {
         this.mdbChannel = new BackupChannel(this, mdb_address, mdb_port);		// initialize backup channel on this peer (NOTE: channel constructor is called here)
         this.mdrChannel = new RestoreChannel(this, mdr_address, mdr_port);		// initialize restore channel on this peer (NOTE: channel constructor is called here)
         
+        this.storageSpace = Constants.INITIAL_STORAGE_SPACE;
         this.initiatorFiles = new InitiatorFilesKeeper();
         this.backedUpChunks = new BackedUpChunksKeeper(this);
         this.restoreDelay = false;
@@ -74,13 +76,18 @@ public class Peer {
 		
 		if(this.peerId.equals("3")) {
 			backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf", 2);
+			backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg", 2);
 			restore("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf");
 			//delete("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf");
-		} else if(this.peerId.equals("2")) {
-			backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg", 2);
-			restore("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg");
-		} else if(this.peerId.equals("1")) {
-			backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\File.txt", 3);
+		} else if(this.peerId.equals("4")) {
+			try {
+				Thread.sleep(15000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			reclaim(100);
+			//backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg", 2);
+			//restore("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg");
 		}
 	}
 	
@@ -94,6 +101,14 @@ public class Peer {
 	
 	public void delete(String filePath) {
 		deleteProtocol.deleteFile(filePath);
+	}
+	
+	public void reclaim(int diskSpace) {
+		reclaimProtocol.manageDiskSpace(diskSpace);
+	}
+	
+	public void setStorageSpace(int storageSpace) {
+		this.storageSpace = storageSpace;
 	}
 	
 	public void setRestoreDelay(boolean restoreDelay) {
@@ -128,7 +143,7 @@ public class Peer {
 		return mdrChannel;
 	}
 
-	public int getStorageSpace() {
+	public long getStorageSpace() {
 		return storageSpace;
 	}
 

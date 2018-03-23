@@ -5,27 +5,33 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import server.Peer;
+import utils.Constants;
+
 public class Chunk {
 	private String fileId;
 	private int chunkNo;
 	private byte[] fileData;
 	private int actualRepDegree;
+	private int desiredRepDegree;
 	
-	public Chunk(String fileId, int chunkNo, byte[] fileData) {
+	public Chunk(String fileId, int desiredRepDegree, int chunkNo, byte[] fileData) {
 		this.fileId = fileId;
+		this.desiredRepDegree = desiredRepDegree;
 		this.chunkNo = chunkNo;
 		this.fileData = fileData;	
 		this.actualRepDegree = 0;
 	}
 	
-	public boolean store(String peerId) {
+	public boolean store(Peer peer) {
+		long updatedChunkSpace = peer.getBackedUpFiles().getChunkSpace() + (Constants.MAX_CHUNK_SIZE/1000);
 		FileOutputStream chunk = null;
-		new File(peerId).mkdirs();
-		String newName = peerId + "/" + fileId + ".part" + chunkNo;
+		new File(peer.getPeerId()).mkdirs();
+		String newName = peer.getPeerId() + "/" + fileId + ".part" + chunkNo;
 		
 		File f = new File(newName);
-		if(f.exists() && !f.isDirectory()) {
-			System.out.println("\r\n*** BACKUP: The chunk " + chunkNo + " from file " + fileId + " has already been stored on this peer! Store failed... ***");
+		if( (f.exists() && !f.isDirectory()) || (updatedChunkSpace >= peer.getStorageSpace()) ) {
+			System.out.println("\r\n*** BACKUP: The chunk " + chunkNo + " from file " + fileId + " was not stored on peer " + peer.getPeerId() + "... ***");
 			return false;
 		}
 		
@@ -54,12 +60,24 @@ public class Chunk {
 		actualRepDegree++;
 	}
 	
+	public void decRepDegree() {
+		actualRepDegree--;
+	}
+	
 	public void setRepDegree(int repDegree) {
 		this.actualRepDegree = repDegree;
+	}
+	
+	public void setActualRepDegree(int actualRepDegree) {
+		this.actualRepDegree = actualRepDegree;
 	}
 
 	public String getFileId() {
 		return fileId;
+	}
+	
+	public int getDesiredRepDegree() {
+		return desiredRepDegree;
 	}
 
 	public int getChunkNo() {

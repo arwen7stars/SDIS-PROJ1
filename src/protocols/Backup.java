@@ -85,7 +85,7 @@ public class Backup {
 		}
 	}
 	
-	public boolean putchunk(String version, String senderId, String fileId, int chunkNo, int repDegree, byte[] body) throws FileNotFoundException, IOException {
+	public boolean putchunk(String version, String senderId, String fileId, int chunkNo, int repDegree, byte[] body) {
         boolean done = false;
         int tries = 0;
         int delay = 1000;
@@ -96,6 +96,11 @@ public class Backup {
         if(body != null)
         	msg = new Message(header, body);		// creates PUTCHUNK message to send over the mdb channel
         else msg = new Message(header);
+        
+    	if (!peer.getInitiatorFiles().getFile(fileId).chunkExists(chunkNo)) {		// checks if chunk instance already exists on this peer
+    		Chunk chunk = new Chunk(fileId, repDegree, chunkNo, msg.getBody());
+    		peer.getInitiatorFiles().getFile(fileId).addChunk(chunk);				// if chunk instance does not exist on this peer, one is created
+		}
 
         while (!done && tries < Constants.MAX_TRIES) {		// "The initiator will send at most 5 PUTCHUNK messages per chunk"
         	peer.getMdbChannel().sendMessage(msg);			// send message over the MDB channel (backup channel). All opened MDB channels will receive this message.
@@ -104,11 +109,6 @@ public class Backup {
 				Thread.sleep(delay);				// "The initiator-peer collects the confirmation messages during a time interval of one second"
 			} catch (InterruptedException e) {
 				e.printStackTrace();
-			}
-        	
-        	if (!peer.getInitiatorFiles().getFile(msg.getFileId()).chunkExists(msg.getChunkNo())) {		// checks if chunk instance already exists on this peer
-        		Chunk chunk = new Chunk(msg.getFileId(), msg.getChunkNo(), msg.getBody());
-        		peer.getInitiatorFiles().getFile(msg.getFileId()).addChunk(chunk);						// if chunk instance does not exist on this peer, one is created
 			}
         	
         	int actualRepDegree = peer.getInitiatorFiles().getChunkRepDegree(msg.getFileId(), msg.getChunkNo());
@@ -131,6 +131,65 @@ public class Backup {
         		}
         	}
         }
+
+		return true;
+	}
+	
+	public boolean putchunkReclaim(String version, String senderId, String fileId, int chunkNo, int actualRepDegree, int repDegree, byte[] body) {
+        boolean done = false;
+        int tries = 0;
+        int delay = 1000;
+        
+        String header = Message.createHeader(TypeMessage.PUTCHUNK, version, senderId, fileId, chunkNo, repDegree);
+        Message msg = null;
+		
+        if(body != null)
+        	msg = new Message(header, body);		// creates PUTCHUNK message to send over the mdb channel
+        else msg = new Message(header);
+
+        while (!done && tries < Constants.MAX_TRIES) {		// "The initiator will send at most 5 PUTCHUNK messages per chunk"
+        	peer.getMdbChannel().sendMessage(msg);			// send message over the MDB channel (backup channel). All opened MDB channels will receive this message.
+			
+        	try {
+				Thread.sleep(delay);				// "The initiator-peer collects the confirmation messages during a time interval of one second"
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+        	
+            if(!peer.getInitiatorFiles().fileExists(fileId)) {
+            	Metadata m = new Metadata();
+            	FileInstance f = new FileInstance(fileId, m, repDegree);
+            	peer.getInitiatorFiles().addFile(f);
+            }
+        	
+        	if (!peer.getInitiatorFiles().getFile(fileId).chunkExists(chunkNo)) {		// checks if chunk instance already exists on this peer
+        		Chunk chunk = new Chunk(fileId, repDegree, chunkNo, msg.getBody());
+        		chunk.setActualRepDegree(actualRepDegree);
+        		peer.getInitiatorFiles().getFile(fileId).addChunk(chunk);				// if chunk instance does not exist on this peer, one is created
+			}
+        	
+        	int arp = peer.getInitiatorFiles().getChunkRepDegree(msg.getFileId(), msg.getChunkNo());
+        	
+        	System.out.println("\n\t\tACTUAL REPLICATION DEGREE OF CHUNK " + msg.getChunkNo() + ": " + arp + "\n");
+        	
+        	if (repDegree <= arp) {				// check whether desired replication degree (repDegree) has been reached
+        		System.out.println("*** BACKUP: Backup of chunk " + msg.getChunkNo() + " from file " + msg.getFileId() + " was successful ***");
+        		done = true;
+        	} else {
+        		System.out.println("*** BACKUP: Couldn't store chunk " + msg.getChunkNo() + " with desired replication degree. Trying again... ***");
+        		tries++;
+        		delay = 2*delay;		// double the time interval for receiving confirmation messages
+        		
+        		System.out.println("NUMBER OF TRIES " + tries);
+        		
+        		if(tries > Constants.MAX_TRIES) {
+        			System.err.println("*** BACKUP: Error sending PUTCHUNK message. Maximum number of tries achieved ***");
+        			return false;
+        		}
+        	}
+        }
+        
+        peer.getInitiatorFiles().deleteChunk(fileId, chunkNo);
 
 		return true;
 	}

@@ -43,6 +43,15 @@ public class InitiatorFilesKeeper {
 		}
 	}
 	
+	public void deleteChunk(String fileId, int chunkNo) {
+		for(int i = 0; i < files.size(); i++) {
+			FileInstance f = files.get(i);
+			if(f.getFileId().equals(fileId)) {
+				f.deleteChunk(chunkNo);
+			}
+		}
+	}
+	
 	public FileInstance getFile(String fileId) {
 		for(int i = 0; i < files.size(); i++) {
 			if(files.get(i).getFileId().equals(fileId)){

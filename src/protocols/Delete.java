@@ -28,10 +28,6 @@ public class Delete {
 		peer.getMcChannel().sendMessage(msg);
 	}
 	
-	public void deleteChunk(String fileId) {
-		
-	}
-	
 	public Peer getPeer() {
 		return peer;
 	}

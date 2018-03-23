@@ -17,6 +17,8 @@ public class Metadata {
 	private String lastModified;
 	private String owner;
 	
+	public Metadata() {}
+	
 	public Metadata(String path) {
 		Path file = Paths.get(path);
 		BasicFileAttributes attr;

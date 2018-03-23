@@ -22,19 +22,32 @@ public class BackedUpChunksKeeper {
 		this.backedUpChunks = setChunksFile();
 	}
 	
+	public long getChunkSpace() {
+		long sum = 0;
+		
+        for (int i = 0; i < backedUpChunks.size(); i++){
+        	sum += backedUpChunks.get(i).getFileData().length;
+        }
+        
+		sum /= 1000;		// bytes to KB
+		
+		return sum;
+	}
+	
 	public boolean deleteChunksStorage(String fileId) {
 		ArrayList<Chunk> chunksToDelete = new ArrayList<Chunk>();
 		
 		for(int i = 0; i < backedUpChunks.size(); i++) {
 			if(backedUpChunks.get(i).getFileId().equals(fileId)) {
-				String path = Metadata.getChunkPath(peer.getPeerId(), fileId, i);
+				int chunkNo = backedUpChunks.get(i).getChunkNo();
+				String path = Metadata.getChunkPath(peer.getPeerId(), fileId, chunkNo);
 				File chunk = new File(path);
 				
 				System.out.println("*** DELETE: CHUNK PATH " + path + " ***");
 				if(chunk.exists()) {
 					if (chunk.delete())
-						System.out.println("*** DELETE: Chunk no. " + i + " deleted with success from file " + fileId + " ***");
-					else System.out.println("*** DELETE: An error occurred deleting chunk no. " + i + " from file " + fileId + " ***");
+						System.out.println("*** DELETE: Chunk no. " + chunkNo + " deleted with success from file " + fileId + " ***");
+					else System.out.println("*** DELETE: An error occurred deleting chunk no. " + chunkNo + " from file " + fileId + " ***");
 				}
 				
 				chunksToDelete.add(backedUpChunks.get(i));
@@ -124,10 +137,32 @@ public class BackedUpChunksKeeper {
     	writeChunksFile(newName, fileContent);
 	}
 
+	public void deleteChunk(String fileId, int chunkNo) {
+		String fileContent = "";
+		
+        new File(peer.getPeerId()).mkdirs();
+		String newName = peer.getPeerId() + "/fileChunks.txt";
+        File file=new File(newName);
+        
+        ArrayList<String> lines = readChunksFile(file);
+        
+        for(int i = 0; i < lines.size(); i++) {
+        	String[] parts = lines.get(i).split(",");
+        	String fid = parts[0];
+        	int cno = Integer.parseInt(parts[2]);
+
+        	if(!(fid.equals(fileId) && (cno == chunkNo))) {
+        		fileContent += lines.get(i);
+        		fileContent += "\n";
+        	}
+        }
+        
+    	writeChunksFile(newName, fileContent);
+	}
 	
-	public void updateChunksFile(String fileId, int chunkNo, int repDegree) {
+	public void updateChunksFile(String fileId, int desiredRepDegree, int chunkNo, int repDegree) {
         String fileContent = "";
-        String newLine = fileId + "," + String.valueOf(chunkNo) + "," + String.valueOf(repDegree) + "\n";
+        String newLine = fileId + "," + String.valueOf(desiredRepDegree) + "," + String.valueOf(chunkNo) + "," + String.valueOf(repDegree) + "\n";
         
         new File(peer.getPeerId()).mkdirs();
 		String newName = peer.getPeerId() + "/fileChunks.txt";
@@ -138,8 +173,10 @@ public class BackedUpChunksKeeper {
         
         for(int i = 0; i < lines.size(); i++) {
         	String[] parts = lines.get(i).split(",");
+        	String fid = parts[0];
+        	int cno = Integer.parseInt(parts[2]);
 
-        	if(parts[0].equals(fileId) && parts[1].equals(String.valueOf(chunkNo))) {
+        	if(fid.equals(fileId) && (cno == chunkNo)) {
         		//System.out.println("Updating " + fileId + "chunk No. " + chunkNo + " on " + newName);
         		fileContent += newLine;
         		found = true;
@@ -179,8 +216,9 @@ public class BackedUpChunksKeeper {
 	        for(int i = 0; i < lines.size(); i++) {
             	String[] parts = lines.get(i).split(",");
             	String fileId = parts[0];
-            	int chunkNo = Integer.parseInt(parts[1]);
-            	int repDegree = Integer.parseInt(parts[2]);
+            	int desiredRepDegree = Integer.parseInt(parts[1]);
+            	int chunkNo = Integer.parseInt(parts[2]);
+            	int repDegree = Integer.parseInt(parts[3]);
             	
 				String filePath = new File("").getAbsolutePath();
 				String relativePath = Metadata.getChunkPath(peer.getPeerId(), fileId, chunkNo);
@@ -197,7 +235,7 @@ public class BackedUpChunksKeeper {
 					e1.printStackTrace();
 				}
 				
-				Chunk c = new Chunk(fileId, chunkNo, fileData);
+				Chunk c = new Chunk(fileId, desiredRepDegree, chunkNo, fileData);
 				c.setRepDegree(repDegree);
 				chunks.add(c);
 	        }
@@ -208,7 +246,7 @@ public class BackedUpChunksKeeper {
 	
 	public void addBackedUpChunk(Chunk c) {
 		backedUpChunks.add(c);
-		updateChunksFile(c.getFileId(), c.getChunkNo(), c.getActualRepDegree());
+		updateChunksFile(c.getFileId(), c.getDesiredRepDegree(), c.getChunkNo(), c.getActualRepDegree());
 	}
 
 	public Chunk getBackedUpChunk(String fileId, int chunkNo) {
