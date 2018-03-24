@@ -23,9 +23,7 @@ public class RestoreChannel extends Channel {
 					if(peer.getRestoreDelay()) {
 						peer.setStopChunkMsg(true);
 					}
-				}
-				
-				if(msg.getMsgType().equals(TypeMessage.CHUNK)){
+					
 					peer.getRestoreProtocol().addToRestoredChunks(msg.getFileId(), msg.getChunkNo(), msg.getBody());
 				}
 			}

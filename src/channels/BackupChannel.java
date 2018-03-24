@@ -19,14 +19,18 @@ public class BackupChannel extends Channel {
 			//System.out.print(msg.getHeader());
 			
 			if (msg.getMsgType().equals(TypeMessage.PUTCHUNK)){
-				if(!peer.getPeerId().equals(msg.getSenderId())) {		// a peer can't store its own files!
+				if(!peer.getInitiatorFiles().fileExists(msg.getFileId()) || peer.getBackupProtocol().getCanBackup()) {		// a peer can't store its own files!
 					Chunk chunk = new Chunk(msg.getFileId(), msg.getRepDegree(), msg.getChunkNo(), msg.getBody());
 
 					if(chunk.store(peer)){						
-						System.out.println("*** BACKUP: Chunk " + msg.getChunkNo() + " stored on server " + peer.getPeerId() + " ***");
+						System.out.println("*** BACKUP: Chunk " + msg.getChunkNo() + " of file " + msg.getFileId() + " stored on server " + peer.getPeerId() + " ***");
 						
 						peer.getBackedUpFiles().addBackedUpChunk(chunk);
 						peer.getBackupProtocol().stored(msg.getVersion(), peer.getPeerId(), msg.getFileId(), msg.getChunkNo());
+					}
+					
+					if(peer.getBackupProtocol().getCanBackup()) {
+						peer.getBackupProtocol().setCanBackup(false);
 					}
 				}
 				

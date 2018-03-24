@@ -44,6 +44,13 @@ public class Restore {
 		peer.getMcChannel().sendMessage(msg);
 	}
 	
+	public void handleGetchunk(Message msg) {
+		Chunk c = null;
+		if ((c = peer.getBackedUpFiles().getBackedUpChunk(msg.getFileId(), msg.getChunkNo())) != null) {
+			peer.getRestoreProtocol().chunk(msg.getVersion(), msg.getFileId(), msg.getChunkNo(), c.getFileData());
+		}
+	}
+	
 	public void chunk(String version, String fileId, int chunkNo, byte[] body) {
 		String header = Message.createHeader(TypeMessage.CHUNK, version, peer.getPeerId(), fileId, chunkNo);
 		Message msg = new Message(header, body);

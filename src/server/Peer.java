@@ -5,9 +5,9 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
-import channels.RMIInterface;
 import channels.BackupChannel;
 import channels.ControlChannel;
+import channels.RMIInterface;
 import channels.RestoreChannel;
 import filesystem.BackedUpChunksKeeper;
 import filesystem.InitiatorFilesKeeper;
@@ -17,7 +17,7 @@ import protocols.Reclaim;
 import protocols.Restore;
 import utils.Constants;
 
-public class Peer implements RMIInterface{
+public class Peer implements RMIInterface {
 	private String protocolVersion;				// version of the protocol
 	private String peerId;						// peer identifier (must be unique!)
 	private String serviceAp;					// name of the remote object providing the testing service (will be used on the client side to test the application)
@@ -70,12 +70,12 @@ public class Peer implements RMIInterface{
 		// TODO : RMI Implementation
 		try {
 			Peer peer = new Peer(args);
-		    RMIInterface stub = (RMIInterface) UnicastRemoteObject.exportObject(peer, 0);
+		    /*RMIInterface stub = (RMIInterface) UnicastRemoteObject.exportObject(peer, 0);
 	
 		    // Bind the remote object's stub in the registry
 		    Registry registry = LocateRegistry.getRegistry();
-		    registry.bind("SERVER", stub);
-		    System.err.println("Server ready");
+		    registry.bind(peer.getServiceAp(), stub);
+		    System.err.println("Server ready");*/
 		    
 		} catch (Exception e) {
 		    System.err.println("Server exception: " + e.toString());
@@ -121,25 +121,22 @@ public class Peer implements RMIInterface{
 		new Thread(mdrChannel).start();				// start restore channel
 		
 		System.out.println("Peer with id " + this.peerId + " ready!");
-		/*
+		
 		if(this.peerId.equals("3")) {
-
 			backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf", 2);
 			backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg", 2);
-			restore("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf");
+			//restore("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf");
 			//delete("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf");
 		} else if(this.peerId.equals("4")) {
 			try {
-				Thread.sleep(15000);
+				Thread.sleep(20000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			reclaim(100);
 			//backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg", 2);
 			//restore("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg");
-			//delete("C:\\Users\\Clï¿½udia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf");
-		} 
-		*/
+		}
 	}
 	
 	public void backup(String filePath, int replicationDegree) {
