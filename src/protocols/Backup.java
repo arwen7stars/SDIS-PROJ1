@@ -96,7 +96,7 @@ public class Backup {
         Message msg = null;
 		
         if(body != null)
-        	msg = new Message(header, body);		// creates PUTCHUNK message to send over the mdb channel
+        	msg = new Message(header, body);				// creates PUTCHUNK message to send over the mdb channel
         else msg = new Message(header);
         
     	if (!peer.getInitiatorFiles().getFile(fileId).chunkExists(chunkNo)) {		// checks if chunk instance already exists on this peer
@@ -117,13 +117,13 @@ public class Backup {
         	
         	System.out.println("\n\t\tACTUAL REPLICATION DEGREE OF CHUNK " + msg.getChunkNo() + ": " + actualRepDegree+ "\n");
         	
-        	if (repDegree <= actualRepDegree) {				// check whether desired replication degree (repDegree) has been reached
+        	if (repDegree <= actualRepDegree) {				// check whether desired replication degree has been reached
         		System.out.println("*** BACKUP: Backup of chunk " + msg.getChunkNo() + " from file " + msg.getFileId() + " was successful ***");
         		done = true;
         	} else {
         		System.out.println("*** BACKUP: Couldn't store chunk " + msg.getChunkNo() + " with desired replication degree. Trying again... ***");
         		tries++;
-        		delay = 2*delay;		// double the time interval for receiving confirmation messages
+        		delay = 2*delay;							// double the time interval for receiving confirmation messages
         		
         		System.out.println("NUMBER OF TRIES " + tries);
         		
@@ -170,7 +170,7 @@ public class Backup {
 		Chunk ch = f.getChunk(msg.getChunkNo());
 		ch.incRepDegree();
 	
-		System.out.println("BACKUP: Replication degree of chunk no. " + ch.getChunkNo() + " increased for file " + f.getFileId());
+		// System.out.println("BACKUP: Replication degree of chunk no. " + ch.getChunkNo() + " increased for file " + f.getFileId());
 		
 		if ((bChunk = peer.getBackedUpFiles().getBackedUpChunk(msg.getFileId(), msg.getChunkNo())) != null) {
 			System.out.println("BACKUP: Storing info of chunk No. " + msg.getChunkNo());

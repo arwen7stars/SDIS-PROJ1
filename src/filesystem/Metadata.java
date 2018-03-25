@@ -75,13 +75,13 @@ public class Metadata {
 	
 	public static String createRestorePath(String peerId, String filename) {
 		new File(peerId).mkdirs();
-		String newName = peerId + "/" + filename;
+		String newName = peerId + "//" + filename;
 		
 		return newName;
 	}
 	
 	public static String getChunkPath(String peerId, String fileId, int chunkNo) {
-		String chunkname = ".\\" + peerId + "\\" + fileId + ".part" + chunkNo;
+		String chunkname = ".//" + peerId + "//" + fileId + ".part" + chunkNo;
 		return chunkname;
 	}
 	

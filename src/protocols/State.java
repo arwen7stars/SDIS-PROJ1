@@ -14,7 +14,7 @@ public class State {
 	
 	public String state() {
 		
-		String fileInfo = "STATE" + peer.getPeerId() + ":\r\n";
+		String fileInfo = "STATE OF PEER NO. " + peer.getPeerId() + ":\r\n";
 		
 		fileInfo += "\r\nFiles information:\r\n";
 
@@ -54,6 +54,8 @@ public class State {
 		
 		if(peer.getBackedUpFiles().getBackedUpChunks().size() != 0) {
 			for(Chunk c : peer.getBackedUpFiles().getBackedUpChunks()) {
+				fileInfo += "\tChunk of file " + c.getFileId();
+				fileInfo += "\r\n";
 				fileInfo += "\tChunk no. " + c.getChunkNo();
 				fileInfo += "\r\n";
 				fileInfo += "\tChunk size " + c.getFileData().length;

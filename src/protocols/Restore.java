@@ -77,7 +77,7 @@ public class Restore {
 	}
 	
 	public void restoreFile(String filePath) {
-		System.out.println("*** RESTORE: Restoring file with path " + filePath + " ***");
+		System.out.println("\n*** RESTORE: Restoring file with path " + filePath + " ***\n");
 		HashMap<Integer, byte[]> tmp = new HashMap<Integer, byte[]>();
 		
 		restoredChunks = new ConcurrentHashMap<String, HashMap<Integer,byte[]>>();		// reset restored chunks
@@ -117,7 +117,7 @@ public class Restore {
 		}
 		
 		String filename = peer.getInitiatorFiles().getFilename(fileId);
-		System.out.println("*** RESTORE: Filename of the file to be restored " + filename + " ***");
+		System.out.println("*** RESTORE: Filename of the file to be restored: " + filename + " ***\n");
 		
 		if(filename != null) {
 			putFileTogether(filename, fileId);

@@ -13,7 +13,7 @@ public class Delete {
 	}
 	
 	public void deleteFile(String filePath) {
-		System.out.println("*** DELETE: Deleting file with path " + filePath + " ***");
+		System.out.println("\n*** DELETE: Deleting file with path " + filePath + " ***\n");
 
 		String fileId = peer.getInitiatorFiles().getFileId(filePath);
 		

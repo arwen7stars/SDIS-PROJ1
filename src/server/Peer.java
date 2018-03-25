@@ -40,11 +40,12 @@ public class Peer implements RMIInterface {
 	private boolean stopChunkMsg;					// used to check whether the peer should send CHUNK message (used on restore protocol)
 
 	public String RMImessage(String message) throws RemoteException {
-		System.out.println(message);
 		String[] request = message.split(" ");
 		String filePath;
 		String protocol = request[0];
 		String response = "";
+		
+		System.out.println("\n" + message + "\n");
 		
 		switch(protocol) {
 		case "BACKUP":
