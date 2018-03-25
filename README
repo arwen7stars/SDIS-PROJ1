@@ -1,25 +1,4 @@
-CONFIGURATIONS
-
-PEERS:
-$ java Peer <protocol_version> <peer_id> <peer_ap> <mc_address> <mc_port> <mdb_address> <mdb_port> <mdr_address> <mdr_port>
-
-PEER_1 -> 1.0 1 1099 230.0.0.1 8081 230.0.0.2 8082 230.0.0.3 8083
-PEER_2 -> 1.0 2 2099 230.0.0.1 8081 230.0.0.2 8082 230.0.0.3 8083
-PEER_3 -> 1.0 3 3099 230.0.0.1 8081 230.0.0.2 8082 230.0.0.3 8083
-
-CLIENT (TestApp):
-$ java TestApp <peer_ap> <sub_protocol> <opnd_1> <opnd_2>
-$ java TestApp 1923 BACKUP test1.pdf 3 
-$ java TestApp 1923 RESTORE test1.pdf
-$ java TestApp 1923 DELETE test1.pdf
-$ java TestApp 1923 RECLAIM 0
-$ java TestApp 1923 STATE
-
-
-FULL PATH:
-
-FABIOLA -> /Users/fabiolasilva/Documents/Git Projects/SDIS/Projects/Ashe_ChampionshipSkin.jpg
-Claudia -> D:\\SDIS-PROJ1\\Ashe_ChampionshipSkin.jpg
+Configurações
 
 Para compilar o projeto no Windows basta só correr script.bat que se encontra na pasta SDIS-PROJ1 do projeto. Este script vai criar uma pasta com as classes compiladas do projeto e vai iniciar o RMI com a instrução "start rmiregistry".
 
@@ -36,3 +15,5 @@ Para iniciar um cliente, é preciso executar o seguinte comando dentro da pasta 
 java -classpath classes client.Client <peer_ap> <sub_protocol> <opnd_1> <opnd_2>
 
 Em que <peer_ap> corresponde ao ponto de acesso ao servidor em que se pretende efetuar o sub-protocolo especificado por <sub_protocol> (BACKUP, DELETE, RESTORE, RECLAIM ou STATE) com os argumentos correspondentes.
+
+Alguns exemplos de como correr a aplicação encontram-se no ficheiro "Exemplo.txt".
