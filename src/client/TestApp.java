@@ -1,50 +1,59 @@
 package client;
 
-import channels.RMIInterface;
+import server.RMIInterface;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 public class TestApp {
+	private String peerAp;			// peer's access point
+	private String protocolMessage;
+	private String protocolName;
 
-	private static String prepareArgs(String[] args) {
+	public TestApp(String[] args) {
 		String protocol = "";
+		this.protocolName = args[1];
 		
-		if(args.length == 4 && args[1].equals("BACKUP")) {
-			protocol = args[1] + " " + args[2] + " " + args[3];
-			
-		}else if(args.length == 3 && (args[1].equals("RESTORE") || args[1].equals("DELETE") || args[1].equals("RECLAIM"))) {
-			protocol = args[1] + " " + args[2];
-			
+		this.peerAp = args[0];
+		
+		if(args.length == 4 && protocolName.equals("BACKUP")) {
+			protocol = protocolName + " " + args[2] + " " + args[3];
+		}else if(args.length == 3 && (protocolName.equals("RESTORE") || protocolName.equals("DELETE") || protocolName.equals("RECLAIM"))) {
+			protocol = protocolName + " " + args[2];
 		}else if(args.length == 2 && args[1].equals("STATE")) {
-			protocol = args[1];
-			
+			protocol = protocolName;
 		}else {
-			protocol = "java TestApp <peer_ap> <sub_protocol> <opnd_1> <opnd_2> ";
+			protocol = "java TestApp <peer_ap> <sub_protocol> <opnd_1> <opnd_2>";
 		}
+		
 		System.out.println(protocol);
-		return protocol;
+		this.protocolMessage = protocol;
 	}
 	
-	public static void  main (String[] args) 
-	{
-		
-		String host = null;  //TODO
-		
-		String peer_ap = (args.length < 1) ? "SERVER" : args[0];
-		
+	public void init() {
 		try {
-		    Registry registry = LocateRegistry.getRegistry(host);
-		    RMIInterface stub = (RMIInterface) registry.lookup(peer_ap);
+		    Registry registry = LocateRegistry.getRegistry();
+		    RMIInterface stub = (RMIInterface) registry.lookup(this.peerAp);
 		    
-		    String response = prepareArgs(args);
-		    System.out.println("response: " + response);
+			System.out.println("Remote invocation of peer " + stub);
+		    String response = stub.RMImessage(protocolMessage);
 		    
-		    response = stub.RMImessage(prepareArgs(args));
-		    
+		    if (protocolName.equals("STATE")) {
+		    	System.out.println(response);
+		    }
 		} catch (Exception e) {
 		    System.err.println("Client exception: " + e.toString());
 		    e.printStackTrace();
 		}
+	}
 	
+	public static void  main (String[] args) 
+	{
+		if (args.length < 2){
+			System.out.println("java TestApp <peer_ap> <sub_protocol> <opnd_1> <opnd_2>");
+			return;
+		}
+		
+	    TestApp app = new TestApp(args);
+	    app.init();
 	}
 }

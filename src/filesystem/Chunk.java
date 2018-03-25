@@ -23,6 +23,12 @@ public class Chunk {
 		this.actualRepDegree = 0;
 	}
 	
+	public Chunk(String fileId, int chunkNo) {
+		this.fileId = fileId;
+		this.chunkNo = chunkNo;
+		this.actualRepDegree = 0;
+	}
+	
 	public boolean store(Peer peer) {
 		long updatedChunkSpace = peer.getBackedUpFiles().getChunkSpace() + (Constants.MAX_CHUNK_SIZE/1000);
 		FileOutputStream chunk = null;

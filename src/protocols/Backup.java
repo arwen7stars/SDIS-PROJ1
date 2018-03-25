@@ -16,18 +16,15 @@ import utils.Message;
 import utils.TypeMessage;
 
 public class Backup {
-	private Peer peer;
-	private boolean canBackup;
-	
+	private Peer peer;	
 	public Backup(Peer peer) {
 		this.peer = peer;
-		this.canBackup = false;
 	}
 	
 	public void sendFileChunks(String path, String version, String senderId, int repDegree) {		
 		Metadata metadata = new Metadata(path);						// gets metadata (filename, lastModified and owner) using the given file path
 		String fileId = metadata.generateFileId();					// generate file id using metadata information
-		
+				
 		System.out.println("*** BACKUP: Attempting to backup file " + metadata.getFilename() + " ***");
 		
 		byte[] buffer = new byte[Constants.MAX_CHUNK_SIZE];			// buffer to get each chunk's data
@@ -35,6 +32,7 @@ public class Backup {
 		
 		if(!peer.getInitiatorFiles().fileExists(fileId)) {						// checks if backup protocol has already been called for this file
 			FileInstance f = new FileInstance(fileId, metadata, repDegree);		// if file doesn't exist on the initiator peer, create a new instance
+			f.setInitiator(true);
 			peer.getInitiatorFiles().addFile(f);
 			
 			System.out.println("Added file " + fileId + " to file keeper...");
@@ -43,6 +41,7 @@ public class Backup {
 			peer.getInitiatorFiles().getFile(fileId).setChunks(chunks);			// ...reset chunks...
 			peer.getInitiatorFiles().getFile(fileId).setMetadata(metadata); 	// ...and metadata...
 			peer.getInitiatorFiles().getFile(fileId).setRepDegree(repDegree);	// ...and replication degree
+			peer.getInitiatorFiles().getFile(fileId).setInitiator(true);
 		}
 		
 		FileInputStream in = null;
@@ -138,44 +137,6 @@ public class Backup {
 		return true;
 	}
 	
-	public boolean putchunkReclaim(int delay, String version, String senderId, String fileId, int chunkNo, int actualRepDegree, int repDegree, byte[] body) {
-        String header = Message.createHeader(TypeMessage.PUTCHUNK, version, senderId, fileId, chunkNo, repDegree);
-        Message msg = null;
-		
-        if(body != null)
-        	msg = new Message(header, body);		// creates PUTCHUNK message to send over the mdb channel
-        else msg = new Message(header);
-
-        if(!peer.getInitiatorFiles().fileExists(fileId)) {
-        	Metadata m = new Metadata();
-        	FileInstance f = new FileInstance(fileId, m, repDegree);
-        	peer.getInitiatorFiles().addFile(f);
-        	peer.getBackupProtocol().setCanBackup(true);
-        }
-    	
-    	if (!peer.getInitiatorFiles().getFile(fileId).chunkExists(chunkNo)) {		// checks if chunk instance already exists on this peer
-    		Chunk chunk = new Chunk(fileId, repDegree, chunkNo, body);
-    		chunk.setActualRepDegree(actualRepDegree);
-    		peer.getInitiatorFiles().getFile(fileId).addChunk(chunk);					// if chunk instance does not exist on this peer, one is created
-		}
-        
-        peer.getMdbChannel().sendMessage(msg);		// send message over the MDB channel (backup channel). All opened MDB channels will receive this message.
-			
-    	try {
-			Thread.sleep(delay);					// "The initiator-peer collects the confirmation messages during a time interval of one second"
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-    	
-    	int arp = peer.getInitiatorFiles().getChunkRepDegree(msg.getFileId(), msg.getChunkNo());
-    	
-    	System.out.println("\n\t\tACTUAL REPLICATION DEGREE OF CHUNK " + msg.getChunkNo() + ": " + arp + "\n");
-        
-        //peer.getInitiatorFiles().deleteChunk(fileId, chunkNo);
-
-		return true;
-	}
-	
 	public void stored(String version, String senderId, String fileId, int chunkNo){
 	    String header = Message.createHeader(TypeMessage.STORED, version, senderId, fileId, chunkNo);
 		Message msg = new Message(header);
@@ -195,22 +156,26 @@ public class Backup {
 	public void handleStored(Message msg) {
 		Chunk bChunk = null;
 		
-		// increasing replication degree for initiator peer
-		if(peer.getInitiatorFiles().fileExists(msg.getFileId())) {
-			FileInstance f = peer.getInitiatorFiles().getFile(msg.getFileId());
-			
-			if (f.chunkExists(msg.getChunkNo())) {
-				Chunk c = f.getChunk(msg.getChunkNo());
-				c.incRepDegree();
-			
-				System.out.println("BACKUP: Replication degree of chunk no. " + c.getChunkNo() + " increased for file " + f.getFileId());
-			}
+		if(!peer.getInitiatorFiles().fileExists(msg.getFileId())) {
+        	FileInstance f = new FileInstance(msg.getFileId());
+        	peer.getInitiatorFiles().addFile(f);
 		}
+				
+    	if (!peer.getInitiatorFiles().getFile(msg.getFileId()).chunkExists(msg.getChunkNo())) {			// checks if chunk instance already exists on this peer
+    		bChunk = new Chunk(msg.getFileId(), msg.getChunkNo());
+    		peer.getInitiatorFiles().getFile(msg.getFileId()).addChunk(bChunk);							// if chunk instance does not exist on this peer, one is created
+		}
+		
+		FileInstance f = peer.getInitiatorFiles().getFile(msg.getFileId());
+		Chunk ch = f.getChunk(msg.getChunkNo());
+		ch.incRepDegree();
+	
+		System.out.println("BACKUP: Replication degree of chunk no. " + ch.getChunkNo() + " increased for file " + f.getFileId());
 		
 		if ((bChunk = peer.getBackedUpFiles().getBackedUpChunk(msg.getFileId(), msg.getChunkNo())) != null) {
 			System.out.println("BACKUP: Storing info of chunk No. " + msg.getChunkNo());
 
-			bChunk.incRepDegree();
+			bChunk.setActualRepDegree(ch.getActualRepDegree());
 			peer.getBackedUpFiles().updateChunksFile(bChunk.getFileId(), bChunk.getDesiredRepDegree(), bChunk.getChunkNo(), bChunk.getActualRepDegree());
 		}
 		
@@ -225,22 +190,14 @@ public class Backup {
 					
 					if(bChunk.getDesiredRepDegree() > bChunk.getActualRepDegree()) {
 						peer.getReclaimProtocol().replicateChunk(bChunk);
-					} else System.out.println("*** BACKUP: Backup of chunk " + c.getChunkNo() + " from file " + c.getFileId() + " was successful ***");
+					} else System.out.println("*** RECLAIM: Backup of chunk " + c.getChunkNo() + " from file " + c.getFileId() + " was successful ***");
 
 				}
 			}
 	    }
 	}
-	
-	public void setCanBackup(boolean canBackup) {
-		this.canBackup = canBackup;
-	}
 
 	public Peer getPeer() {
 		return peer;
-	}
-	
-	public boolean getCanBackup() {
-		return canBackup;
 	}
 }

@@ -22,7 +22,7 @@ public class ControlChannel extends Channel {
 			} else if (msg.getMsgType().equals(TypeMessage.GETCHUNK)) {
 				peer.getRestoreProtocol().handleGetchunk(msg);
 			} else if (msg.getMsgType().equals(TypeMessage.DELETE)) {
-				peer.getBackedUpFiles().deleteChunksStorage(msg.getFileId());
+				peer.getDeleteProtocol().handleDelete(msg);
 			} else if (msg.getMsgType().equals(TypeMessage.REMOVED)) {
 				peer.getReclaimProtocol().handleRemoved(msg);
 			}

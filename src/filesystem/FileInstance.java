@@ -7,12 +7,19 @@ public class FileInstance {
 	private int repDegree;				// desired replication degree
 	private Metadata fileMetadata;
 	private Vector<Chunk> chunks;		// vector of file chunks
+	private boolean isInitiator;
 	
 	public FileInstance(String fileId, Metadata metadata, int repDegree) {
 		this.fileId = fileId;
 		this.repDegree = repDegree;
 		this.fileMetadata = metadata;
-		this.chunks = new Vector<Chunk>();		
+		this.chunks = new Vector<Chunk>();
+		this.isInitiator = false;
+	}
+	
+	public FileInstance(String fileId) {
+		this.fileId = fileId;
+		this.chunks = new Vector<Chunk>();
 	}
 	
 	public boolean chunkExists(int chunkNo) {
@@ -73,5 +80,13 @@ public class FileInstance {
 
 	public Vector<Chunk> getChunks() {
 		return chunks;
+	}
+
+	public boolean isInitiator() {
+		return isInitiator;
+	}
+
+	public void setInitiator(boolean isInitiator) {
+		this.isInitiator = isInitiator;
 	}
 }

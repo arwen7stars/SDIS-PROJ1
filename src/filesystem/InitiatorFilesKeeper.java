@@ -6,7 +6,7 @@ import java.util.Vector;
 public class InitiatorFilesKeeper {
 	private Vector<FileInstance> files = new Vector<FileInstance>();
 	
-	public InitiatorFilesKeeper() {}
+	public InitiatorFilesKeeper() {	}
 	
 	public boolean fileExists(String fileId) {
 		if(files != null){
@@ -23,7 +23,7 @@ public class InitiatorFilesKeeper {
 		files.addElement(f);
 	}
 	
-	public boolean deleteFile(String fileId) {
+	public boolean deleteFile(String peerId, String fileId) {
 		FileInstance f = this.getFile(fileId);
 		
 		if(f != null) {
@@ -33,6 +33,15 @@ public class InitiatorFilesKeeper {
     			System.out.println(file.getName() + " was deleted!");
     		} else {
     			System.out.println("Delete operation has failed.");
+    		}
+			
+			String restorePath = Metadata.createRestorePath(peerId, f.getFileMetadata().getFilename());
+			file = new File(restorePath);
+			
+			if (file.delete()) {
+    			System.out.println(file.getName() + " was deleted!");
+    		} else {
+    			System.out.println("There's no restored files on this peer.");
     		}
 			
 			files.remove(f);
@@ -93,7 +102,14 @@ public class InitiatorFilesKeeper {
 		return c.getActualRepDegree();
 	}
 
-	public Vector<FileInstance> getFiles() {
-		return files;
+	public Vector<FileInstance> getInitiatorFiles() {
+		Vector<FileInstance> initiatorFiles = new Vector<FileInstance>();
+		
+		for(FileInstance f : files) {
+			if (f.isInitiator()) {
+				initiatorFiles.add(f);
+			}
+		}
+		return initiatorFiles;
 	}
 }

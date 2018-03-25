@@ -7,7 +7,7 @@ import java.rmi.server.UnicastRemoteObject;
 
 import channels.BackupChannel;
 import channels.ControlChannel;
-import channels.RMIInterface;
+import server.RMIInterface;
 import channels.RestoreChannel;
 import filesystem.BackedUpChunksKeeper;
 import filesystem.InitiatorFilesKeeper;
@@ -15,6 +15,7 @@ import protocols.Backup;
 import protocols.Delete;
 import protocols.Reclaim;
 import protocols.Restore;
+import protocols.State;
 import utils.Constants;
 
 public class Peer implements RMIInterface {
@@ -30,6 +31,7 @@ public class Peer implements RMIInterface {
 	private Restore restoreProtocol;			// protocol used to restore a file chunk
 	private Delete deleteProtocol;				// protocol used to delete a file
 	private Reclaim reclaimProtocol;			// protocol used to reclaim space on a peer
+	private State state;
 	
 	private long storageSpace;						// maximum storage space in KB on this peer (will be used on reclaim protocol)
 	private InitiatorFilesKeeper initiatorFiles;	// used to keep track of all files which backup started on this server
@@ -40,42 +42,49 @@ public class Peer implements RMIInterface {
 	public String RMImessage(String message) throws RemoteException {
 		System.out.println(message);
 		String[] request = message.split(" ");
+		String filePath;
+		String protocol = request[0];
+		String response = "";
 		
-		switch( request[0] ) {
+		switch(protocol) {
 		case "BACKUP":
-			//backup(request[1], Integer.parseInt(request[2]));
+			filePath = request[1];
+			int repDegree = Integer.parseInt(request[2]);
+			backup(filePath, repDegree);
 			break;
 		case "RESTORE":
-			//restore(request[1]);
+			filePath = request[1];
+			restore(filePath);
 			break;
 		case "DELETE":
-			//delete(request[1]);
+			filePath = request[1];
+			delete(filePath);
 			break;
 		case "RECLAIM":
-			System.out.println("");//TODO
+			long diskSpace = Long.parseLong(request[1]);
+			reclaim(diskSpace);
 			break;
 		case "STATE":
-			System.out.println("");//TODO
+			response = state();
 			break;
 		default:
 			System.out.println("ERRO!");//TODO
 			break;
 		}
 		
-    	return request[0];
+    	return response;
     }
 	
 	 
 	public static void main(String[] args) {
-		// TODO : RMI Implementation
 		try {
 			Peer peer = new Peer(args);
-		    /*RMIInterface stub = (RMIInterface) UnicastRemoteObject.exportObject(peer, 0);
+		    RMIInterface stub = (RMIInterface) UnicastRemoteObject.exportObject(peer, 0);
 	
 		    // Bind the remote object's stub in the registry
 		    Registry registry = LocateRegistry.getRegistry();
 		    registry.bind(peer.getServiceAp(), stub);
-		    System.err.println("Server ready");*/
+		    System.err.println("Server ready");
 		    
 		} catch (Exception e) {
 		    System.err.println("Server exception: " + e.toString());
@@ -106,7 +115,6 @@ public class Peer implements RMIInterface {
         this.mdrChannel = new RestoreChannel(this, mdr_address, mdr_port);		// initialize restore channel on this peer (NOTE: channel constructor is called here)
         
         this.storageSpace = Constants.INITIAL_STORAGE_SPACE;
-        this.initiatorFiles = new InitiatorFilesKeeper();
         this.backedUpChunks = new BackedUpChunksKeeper(this);
         this.restoreDelay = false;
         this.stopChunkMsg = false;
@@ -115,6 +123,11 @@ public class Peer implements RMIInterface {
         this.restoreProtocol = new Restore(this);	// initialize restore protocol on this peer
         this.deleteProtocol = new Delete(this);		// initialize delete protocol on this peer
         this.reclaimProtocol = new Reclaim(this);	// initialize reclaim protocol on this peer
+        this.state = new State(this);				// initialize reclaim protocol on this peer
+        
+        this.initiatorFiles = new InitiatorFilesKeeper();
+        this.backedUpChunks = new BackedUpChunksKeeper(this);
+        
         
 		new Thread(mcChannel).start();				// start control channel
 		new Thread(mdbChannel).start();				// start backup channel
@@ -122,21 +135,10 @@ public class Peer implements RMIInterface {
 		
 		System.out.println("Peer with id " + this.peerId + " ready!");
 		
-		if(this.peerId.equals("3")) {
+		/*if(this.peerId.equals("3")) {
 			backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf", 2);
-			backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg", 2);
-			//restore("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf");
-			//delete("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\SDIS.pdf");
-		} else if(this.peerId.equals("4")) {
-			try {
-				Thread.sleep(20000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			reclaim(100);
-			//backup("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg", 2);
-			//restore("C:\\Users\\Cláudia Marinho\\Documents\\NEON\\SDIS\\Ashe_ChampionshipSkin.jpg");
-		}
+			state();
+		}*/
 	}
 	
 	public void backup(String filePath, int replicationDegree) {
@@ -151,11 +153,15 @@ public class Peer implements RMIInterface {
 		deleteProtocol.deleteFile(filePath);
 	}
 	
-	public void reclaim(int diskSpace) {
+	public void reclaim(long diskSpace) {
 		reclaimProtocol.manageDiskSpace(diskSpace);
 	}
 	
-	public void setStorageSpace(int storageSpace) {
+	public String state() {
+		return state.state();
+	}
+	
+	public void setStorageSpace(long storageSpace) {
 		this.storageSpace = storageSpace;
 	}
 	

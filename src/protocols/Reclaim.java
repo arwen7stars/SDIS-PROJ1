@@ -51,13 +51,14 @@ public class Reclaim {
 			if(f.chunkExists(msg.getChunkNo())) {
 				Chunk c = f.getChunk(msg.getChunkNo());
 				c.decRepDegree();
-				System.out.println("BACKUP: Replication degree of chunk no. " + c.getChunkNo() + " decreased for file " + f.getFileId());
+				System.out.println("RECLAIM: Replication degree of chunk no. " + c.getChunkNo() + " decreased for file " + f.getFileId());
 			}
 			
 		}
 		
 		if ((bChunk = peer.getBackedUpFiles().getBackedUpChunk(msg.getFileId(), msg.getChunkNo())) != null) {
-			bChunk.decRepDegree();
+			bChunk.setActualRepDegree(peer.getInitiatorFiles().getFile(msg.getFileId()).getChunk(msg.getChunkNo()).getActualRepDegree());
+			
 			peer.getBackedUpFiles().updateChunksFile(bChunk.getFileId(), bChunk.getDesiredRepDegree(), bChunk.getChunkNo(), bChunk.getActualRepDegree());
 			
 			if (bChunk.getActualRepDegree() < bChunk.getDesiredRepDegree()){
@@ -100,11 +101,11 @@ public class Reclaim {
 			if (backup.tries > 0)
 				delay = 2*backup.tries*delay;
 				
-			this.peer.getBackupProtocol().putchunkReclaim(delay, peer.getProtocolVersion(), peer.getPeerId(), fileId, chunkNo, c.getActualRepDegree(), desiredRepDegree, body);
+			this.putchunkReclaim(delay, peer.getProtocolVersion(), peer.getPeerId(), fileId, chunkNo, c.getActualRepDegree(), desiredRepDegree, body);
 			// will try to get desired replication degree by sending chunks to the other peers
 			
 			if(desiredRepDegree <= c.getActualRepDegree()) {
-        		System.out.println("*** BACKUP: Backup of chunk " + chunkNo + " from file " + fileId + " was successful ***");
+        		System.out.println("*** RECLAIM: Backup of chunk " + chunkNo + " from file " + fileId + " was successful ***");
         		backup.done = true;
 				reclaimChunks.put(c, backup);
     			chunksToBackup.remove(c);
@@ -120,7 +121,30 @@ public class Reclaim {
 		return false;
 	}
 	
-	public void manageDiskSpace(int diskSpace) {
+	public boolean putchunkReclaim(int delay, String version, String senderId, String fileId, int chunkNo, int actualRepDegree, int repDegree, byte[] body) {
+        String header = Message.createHeader(TypeMessage.PUTCHUNK, version, senderId, fileId, chunkNo, repDegree);
+        Message msg = null;
+		
+        if(body != null)
+        	msg = new Message(header, body);		// creates PUTCHUNK message to send over the mdb channel
+        else msg = new Message(header);
+        
+        peer.getMdbChannel().sendMessage(msg);		// send message over the MDB channel (backup channel). All opened MDB channels will receive this message
+			
+    	try {
+			Thread.sleep(delay);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+    	
+    	int arp = peer.getInitiatorFiles().getChunkRepDegree(msg.getFileId(), msg.getChunkNo());
+    	
+    	System.out.println("\n\t\tACTUAL REPLICATION DEGREE OF CHUNK " + msg.getChunkNo() + ": " + arp + "\n");
+        
+		return true;
+	}
+	
+	public void manageDiskSpace(long diskSpace) {
 		peer.setStorageSpace(diskSpace);
 		System.out.println("Peer storage changed to " + diskSpace + " bytes");
 		System.out.println("ACTUAL STORAGE " + peer.getBackedUpFiles().getChunkSpace());

@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 
 import filesystem.Chunk;
 import filesystem.FileInstance;
@@ -20,8 +21,7 @@ import utils.TypeMessage;
 
 public class Restore {
 	private Peer peer;
-	private HashMap<String, HashMap<Integer,byte[]>> restoredChunks = new HashMap<String, HashMap<Integer,byte[]>>();
-	//private HashMap<Integer, byte[]> restoredChunks = new HashMap<Integer, byte[]>();
+	private ConcurrentHashMap<String, HashMap<Integer,byte[]>> restoredChunks = new ConcurrentHashMap<String, HashMap<Integer,byte[]>>();
 	private Vector<Integer> chunksToResend = new Vector<Integer>();
 	
 	public Restore(Peer peer) {
@@ -80,8 +80,8 @@ public class Restore {
 		System.out.println("*** RESTORE: Restoring file with path " + filePath + " ***");
 		HashMap<Integer, byte[]> tmp = new HashMap<Integer, byte[]>();
 		
-		restoredChunks = new HashMap<String, HashMap<Integer,byte[]>>();			// reset restored chunks
-		chunksToResend = new Vector<Integer>();										// reset chunks to resend
+		restoredChunks = new ConcurrentHashMap<String, HashMap<Integer,byte[]>>();		// reset restored chunks
+		chunksToResend = new Vector<Integer>();											// reset chunks to resend
 
 		String fileId = peer.getInitiatorFiles().getFileId(filePath);
 		
@@ -201,7 +201,7 @@ public class Restore {
 		return peer;
 	}
 	
-	public HashMap<String, HashMap<Integer,byte[]>> getRestoredChunks() {
+	public ConcurrentHashMap<String, HashMap<Integer,byte[]>> getRestoredChunks() {
 		return restoredChunks;
 	}
 }
