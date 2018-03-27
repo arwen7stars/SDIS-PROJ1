@@ -24,32 +24,27 @@ public class InitiatorFilesKeeper {
 	}
 	
 	public boolean deleteFile(String peerId, String fileId) {
-		FileInstance f = this.getFile(fileId);
-		
-		if(f != null) {
-			File file = new File(f.getFileMetadata().getFilePath());
-    		
-			if (file.delete()) {
-    			System.out.println(file.getName() + " was deleted!");
-    		} else {
-    			System.out.println("Delete operation has failed.");
-    		}
-			
-			String restorePath = Metadata.createRestorePath(peerId, f.getFileMetadata().getFilename());
-			file = new File(restorePath);
-			
-			if (file.delete()) {
-    			System.out.println(file.getName() + " was deleted!");
-    		} else {
-    			System.out.println("There's no restored files on this peer.");
-    		}
-			
-			files.remove(f);
-			return true;
+		FileInstance f = this.getFile(fileId);	
+
+		File file = new File(f.getFileMetadata().getFilePath());
+	
+		if (file.delete()) {
+			System.out.println(file.getName() + " was deleted!");
 		} else {
-			System.out.println("*** DELETE: File has already been deleted from this peer.***");
-			return false;
+			System.out.println("Delete operation has failed.");
 		}
+		
+		String restorePath = Metadata.createRestorePath(peerId, f.getFileMetadata().getFilename());
+		file = new File(restorePath);
+		
+		if (file.delete()) {
+			System.out.println(file.getName() + " was deleted!");
+		} else {
+			System.out.println("There's no restored files on this peer.");
+		}
+		
+		files.remove(f);
+		return true;
 	}
 	
 	public void deleteChunk(String fileId, int chunkNo) {
