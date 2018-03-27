@@ -2,6 +2,8 @@ Configurações
 
 Para compilar o projeto no Windows basta só correr script.bat que se encontra na pasta SDIS-PROJ1 do projeto. Este script vai criar uma pasta com as classes compiladas do projeto e vai iniciar o RMI com a instrução "start rmiregistry".
 
+Para compilar o projeto no Linux basta só correr linux.sh que se encontra na pasta SDIS-PROJ1 através do comando "bash ./linux.sh". Este script vai criar uma pasta com as classes compiladas do projeto e vai iniciar o RMI.
+
 Para correr o programa, basta abrir um número de linhas de comando correspondentes ao número de servidores e clientes que se pretende abrir.
 
 Para iniciar um servidor, é preciso executar o seguinte comando dentro da pasta SDIS-PROJ1 depois de ter executado script.bat:
