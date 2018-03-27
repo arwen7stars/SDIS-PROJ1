@@ -82,11 +82,11 @@ public class Restore {
 		System.out.println("\n*** RESTORE: Restoring file with path " + filePath + " ***\n");
 		this.restoreOngoing = true;
 
-		restoredChunks = new ConcurrentHashMap<String, HashMap<Integer,byte[]>>();		// reset restored chunks
-		chunksToResend = new Vector<Integer>();																				// reset chunks to resend
+		restoredChunks = new ConcurrentHashMap<String, HashMap<Integer,byte[]>>();	// reset restored chunks
+		chunksToResend = new Vector<Integer>();						// reset chunks to resend
 
-		Metadata metadata = new Metadata(filePath);																		// gets metadata (filename, lastModified and owner) using the given file path
-		String fileId = metadata.generateFileId();																		// generate file id using metadata information
+		Metadata metadata = new Metadata(filePath);					// gets metadata (filename, lastModified and owner) using the given file path
+		String fileId = metadata.generateFileId();					// generate file id using metadata information
 
 		FileInstance f = peer.getInitiatorFiles().getFile(fileId);
 
