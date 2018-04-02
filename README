@@ -14,7 +14,7 @@ Em que <protocol_version> corresponde à versão do protocolo, <peer_id> corresp
 
 Para iniciar um cliente, é preciso executar o seguinte comando dentro da pasta "src":
 
-java -classpath classes client.Client <peer_ap> <sub_protocol> <opnd_1> <opnd_2>
+java -classpath classes client.TestApp <peer_ap> <sub_protocol> <opnd_1> <opnd_2>
 
 Em que <peer_ap> corresponde ao ponto de acesso ao servidor em que se pretende efetuar o sub-protocolo especificado por <sub_protocol> (BACKUP, DELETE, RESTORE, RECLAIM ou STATE) com os argumentos correspondentes.
 
