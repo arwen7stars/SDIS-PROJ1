@@ -1,9 +1,26 @@
+RMI:
+bash ./linux.sh
+
+PEER'S:
 java -classpath bin -Djava.rmi.server.codebase=file:bin/ server.Peer 1.0 1 1099 230.0.0.1 8081 230.0.0.2 8082 230.0.0.3 8083
+
 java -classpath bin -Djava.rmi.server.codebase=file:bin/ server.Peer 1.0 2 2099 230.0.0.1 8081 230.0.0.2 8082 230.0.0.3 8083
+
 java -classpath bin -Djava.rmi.server.codebase=file:bin/ server.Peer 1.0 3 3099 230.0.0.1 8081 230.0.0.2 8082 230.0.0.3 8083
 
-WINDOWS:
+------------------------LINUX------------------------
+
+BACKUP:
+java -classpath bin client.TestApp 1099 BACKUP "./SDIS.pdf" 2
+
+RESTORE:
+java -classpath bin client.TestApp 1099 RESTORE "./SDIS.pdf"
+
+DELETE:
+java -classpath bin client.TestApp 1099 DELETE "./SDIS.pdf"
+
+
+------------------------WINDOWS------------------------
+
 java -classpath bin client.TestApp 1099 BACKUP "D:\\SDIS-PROJ1\\Ashe_ChampionshipSkin.jpg" 2
 
-LINUX:
-java -classpath bin client.TestApp 1099 BACKUP "./Ashe_ChampionshipSkin.jpg" 2
