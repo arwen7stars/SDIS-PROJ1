@@ -8,6 +8,9 @@ java -classpath bin -Djava.rmi.server.codebase=file:bin/ server.Peer 1.0 2 2099 
 
 java -classpath bin -Djava.rmi.server.codebase=file:bin/ server.Peer 1.0 3 3099 230.0.0.1 8081 230.0.0.2 8082 230.0.0.3 8083
 
+java -classpath bin -Djava.rmi.server.codebase=file:bin/ server.Peer 1.0 4 4099 230.0.0.1 8081 230.0.0.2 8082 230.0.0.3 8083
+
+
 ------------------------LINUX------------------------
 
 BACKUP:
@@ -19,6 +22,18 @@ java -classpath bin client.TestApp 1099 RESTORE "./SDIS.pdf"
 DELETE:
 java -classpath bin client.TestApp 1099 DELETE "./SDIS.pdf"
 
+STATE:
+java -classpath bin client.TestApp 2099 STATE
+
+RECLAIM:
+java -classpath bin client.TestApp 2099 RECLAIM 0
+
+TESTAR PROTOCOLO RECLAIM:
+- Iniciar 4 peers
+- Backup no peer 1
+- Reclaim 100 no peer 4 (verifica que os chunks são eliminados do peer 4 até que o storage pretendido seja atingido e atualiza o replication degree em todos os peers)
+- Reclaim 8000 no peer 4 (volta a ter espaço para armazenar chunks)
+- Reclaim 0 no peer 2 (verifica que elimina todos os chunks do peer 2 e faz backup dos chunks que não tinham o replication degree desejado no peer 4)
 
 ------------------------WINDOWS------------------------
 
