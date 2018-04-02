@@ -25,7 +25,8 @@ public class InitiatorFilesKeeper {
 	
 	public boolean deleteFile(String peerId, String fileId) {
 		FileInstance f = this.getFile(fileId);
-		
+		File file = new File(f.getFileMetadata().getFilePath());
+
 		String restorePath = Metadata.createRestorePath(peerId, f.getFileMetadata().getFilename());
 		file = new File(restorePath);
 		
