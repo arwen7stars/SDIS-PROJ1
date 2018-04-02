@@ -88,12 +88,12 @@ public class Restore {
 		Metadata metadata = new Metadata(filePath);					// gets metadata (filename, lastModified and owner) using the given file path
 		String fileId = metadata.generateFileId();					// generate file id using metadata information
 
-		FileInstance f = peer.getInitiatorFiles().getFile(fileId);
-
-		if (f.equals(null)) {
-			System.out.println("*** RESTORE: The file hasn't been backed up yet on any of the peers. ***");
-			return;
+		if(!peer.getInitiatorFiles().fileExists(fileId)) {
+			System.out.println("*** RESTORE: The file hasn't been backed up yet on any of the peers. ***");			
+			return;	
 		}
+
+		FileInstance f = peer.getInitiatorFiles().getFile(fileId);
 
 		f.setMetadata(metadata);
 

@@ -6,4 +6,4 @@ WINDOWS:
 java -classpath bin client.TestApp 1099 BACKUP "D:\\SDIS-PROJ1\\Ashe_ChampionshipSkin.jpg" 2
 
 LINUX:
-java -classpath bin client.TestApp 1099 BACKUP "/home/arwen7stars/Desktop/SDIS-PROJ1/Ashe_ChampionshipSkin.jpg" 2
+java -classpath bin client.TestApp 1099 BACKUP "./Ashe_ChampionshipSkin.jpg" 2
